@@ -5,19 +5,15 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "installCommand": "cd client && npm install",
-        "buildCommand": "cd client && npm run build"
+        "distDir": "client/dist",
+        "buildCommand": "cd client && npm install && chmod +x node_modules/.bin/tsc && npm run build"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/dist/$1",
-      "headers": {
-        "Cache-Control": "s-maxage=3600, stale-while-revalidate"
-      }
+      "dest": "client/dist/$1"
     }
   ]
 }
