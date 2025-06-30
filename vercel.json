@@ -13,7 +13,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/client/dist/index.html"
+      "dest": "dist/index.html"
     }
   ]
 }
