@@ -3,17 +3,17 @@
   "builds": [
     {
       "src": "client/package.json",
-      "use": "@vercel/static-build",
+      "use": "@vercel/static",
       "config": {
-        "distDir": "client/dist",
-        "buildCommand": "cd client && npm install && chmod +x node_modules/.bin/tsc && npm run build"
+        "distDir": "dist",
+        "buildCommand": "npm install && chmod +x node_modules/.bin/tsc && npm run build"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "client/dist/$1"
+      "dest": "/client/dist/index.html"
     }
   ]
 }
