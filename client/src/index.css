@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #3a7d44;
+  --secondary: #5dbb63;
+  --accent: #254d32;
+  --light: #f8f9fa;
+  --dark: #212529;
+  --glass: rgba(255, 255, 255, 0.25);
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #e6f5e6 0%, #c8e6c9 100%);
+  min-height: 100vh;
+}
+/* Add other classes like .glass-card, converting to Tailwind utilities */
