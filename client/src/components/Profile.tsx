@@ -16,6 +16,9 @@ interface ProfileData {
   zip: string;
   phone: string;
   profileImage: string;
+  skills: string[];
+  preferences: string;
+  availability: string[];
 }
 
 const Profile: FC<ProfileProps> = ({ user }) => {
@@ -32,16 +35,29 @@ const Profile: FC<ProfileProps> = ({ user }) => {
     state: '',
     zip: '',
     phone: '',
-    profileImage: 'https://placehold.co/80x80'
+    profileImage: 'https://placehold.co/80x80',
+    skills: [],
+    preferences: '',
+    availability: []
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [customSkill, setCustomSkill] = useState('');
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [charCounts, setCharCounts] = useState({
     fullName: user.name?.length || 0,
     address1: 0,
     address2: 0,
     city: 0
   });
+
+  const COMMON_SKILLS = [
+    'Physical Labor', 'Customer Service', 'Organization', 'Teaching',
+    'Gardening', 'Cooking', 'Driving', 'First Aid', 'Event Planning',
+    'Social Media', 'Photography', 'Translation', 'Technical Skills',
+    'Fundraising', 'Marketing', 'Writing', 'Data Entry', 'Childcare',
+    'Elder Care', 'Animal Care', 'Construction', 'Tutoring'
+  ];
 
   const US_STATES = [
     { value: '', label: 'Select State' },
@@ -136,6 +152,14 @@ const Profile: FC<ProfileProps> = ({ user }) => {
       newErrors.phone = 'Phone number format is invalid';
     }
     
+    if (profileData.skills.length === 0) {
+      newErrors.skills = 'At least one skill is required';
+    }
+    
+    if (profileData.availability.length === 0) {
+      newErrors.availability = 'At least one availability date is required';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -182,15 +206,73 @@ const Profile: FC<ProfileProps> = ({ user }) => {
     alert('Profile updated successfully!');
   };
 
+  const addSkill = (skill: string) => {
+    if (skill && !profileData.skills.includes(skill)) {
+      setProfileData(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill]
+      }));
+      if (errors.skills) {
+        setErrors(prev => ({ ...prev, skills: '' }));
+      }
+    }
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
+
+  const handleCustomSkillAdd = () => {
+    if (customSkill.trim()) {
+      addSkill(customSkill.trim());
+      setCustomSkill('');
+    }
+  };
+
+  const handleDateAdd = () => {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    if (!profileData.availability.includes(dateStr)) {
+      setProfileData(prev => ({
+        ...prev,
+        availability: [...prev.availability, dateStr]
+      }));
+      if (errors.availability) {
+        setErrors(prev => ({ ...prev, availability: '' }));
+      }
+    }
+  };
+
+  const handleDateChange = (index: number, date: string) => {
+    const newAvailability = [...profileData.availability];
+    newAvailability[index] = date;
+    setProfileData(prev => ({
+      ...prev,
+      availability: newAvailability
+    }));
+  };
+
+  const removeDateAvailability = (dateToRemove: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      availability: prev.availability.filter(date => date !== dateToRemove)
+    }));
+  };
+
   const completionPercentage = () => {
     const fields = [
       profileData.fullName,
       profileData.address1,
       profileData.city,
       profileData.state,
-      profileData.zip
+      profileData.zip,
+      profileData.skills.length > 0 ? 'filled' : '',
+      profileData.availability.length > 0 ? 'filled' : ''
     ];
-    const filledFields = fields.filter(field => field.trim()).length;
+    const filledFields = fields.filter(field => field.toString().trim()).length;
     return Math.round((filledFields / fields.length) * 100);
   };
 
@@ -392,6 +474,118 @@ const Profile: FC<ProfileProps> = ({ user }) => {
                     />
                     {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                   </div>
+                </div>
+              </div>
+              
+              <div className="col-span-2">
+                <h2 className="text-lg font-medium text-green-700 mb-4">Skills & Preferences</h2>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Skills *
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                    {COMMON_SKILLS.map(skill => (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => addSkill(skill)}
+                        disabled={profileData.skills.includes(skill)}
+                        className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                          profileData.skills.includes(skill)
+                            ? 'bg-green-100 border-green-300 text-green-800 cursor-not-allowed'
+                            : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300'
+                        }`}
+                      >
+                        {skill}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text"
+                      value={customSkill}
+                      onChange={(e) => setCustomSkill(e.target.value)}
+                      placeholder="Add custom skill..."
+                      className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomSkillAdd())}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCustomSkillAdd}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {profileData.skills.map(skill => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800"
+                      >
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => removeSkill(skill)}
+                          className="ml-2 text-green-600 hover:text-green-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  {errors.skills && <p className="mt-1 text-sm text-red-600">{errors.skills}</p>}
+                </div>
+                
+                <div className="mb-6">
+                  <label htmlFor="preferences" className="block text-sm font-medium text-gray-700">
+                    Volunteer Preferences
+                  </label>
+                  <textarea
+                    id="preferences"
+                    value={profileData.preferences}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, preferences: e.target.value }))}
+                    rows={4}
+                    placeholder="Tell us about your volunteer preferences, interests, or any special considerations..."
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Availability *
+                  </label>
+                  <div className="space-y-2">
+                    {profileData.availability.map((date, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={date}
+                          onChange={(e) => handleDateChange(index, e.target.value)}
+                          className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeDateAvailability(date)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleDateAdd}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <i className="fas fa-plus mr-2"></i>
+                      Add Available Date
+                    </button>
+                  </div>
+                  {errors.availability && <p className="mt-1 text-sm text-red-600">{errors.availability}</p>}
                 </div>
               </div>
             </div>
