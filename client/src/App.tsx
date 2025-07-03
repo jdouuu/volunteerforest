@@ -20,13 +20,13 @@ export interface User {
 }
 
 const AppContent = () => {
-  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'profile' | 'events' | 'history' | 'notifications'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications'>('login');
   const [user, setUser] = useState<User | null>(null);
   const { notifications } = useNotifications();
 
   const handleLogin = (userData: User) => {
     setUser(userData);
-    setCurrentPage('dashboard');
+    setCurrentPage(userData.role === 'admin' ? 'admin' : 'dashboard');
   };
 
   const handleLogout = () => {
@@ -39,6 +39,8 @@ const AppContent = () => {
       case 'login':
         return <Login onLogin={handleLogin} />;
       case 'dashboard':
+        return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
+      case 'admin':
         return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
       case 'profile':
         return <Profile user={user} />;

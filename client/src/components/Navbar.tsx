@@ -6,22 +6,22 @@ import { useNotifications } from '../context/NotificationContext';
 interface NavbarProps {
   user: User;
   currentPage: string;
-  onNavigate: (page: 'dashboard' | 'profile' | 'events' | 'history' | 'notifications') => void;
+  onNavigate: (page: 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications') => void;
   onLogout: () => void;
 }
 
 const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) => {
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
 
-  const navigation = [
+  const navigation = user.role === 'admin' ? [
+    { id: 'admin', label: 'Dashboard', page: 'admin' as const },
+    { id: 'events', label: 'Events', page: 'events' as const },
+    { id: 'history', label: 'History', page: 'history' as const },
+  ] : [
     { id: 'dashboard', label: 'Home', page: 'dashboard' as const },
     { id: 'events', label: 'Events', page: 'events' as const },
     { id: 'history', label: 'History', page: 'history' as const },
   ];
-
-  if (user.role === 'admin') {
-    navigation.push({ id: 'admin', label: 'Admin', page: 'dashboard' as const });
-  }
 
   return (
     <nav className="bg-white shadow-md">
@@ -42,7 +42,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
                     key={item.id}
                     onClick={() => onNavigate(item.page)}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentPage === item.page
+                      (currentPage === item.page || (currentPage === 'admin' && item.id === 'admin') || (currentPage === 'dashboard' && item.id === 'dashboard'))
                         ? 'text-green-700'
                         : 'text-gray-700 hover:text-green-700'
                     }`}
