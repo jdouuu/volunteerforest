@@ -4,7 +4,7 @@ import { User } from '../App';
 interface NavbarProps {
   user: User;
   currentPage: string;
-  onNavigate: (page: 'dashboard' | 'profile') => void;
+  onNavigate: (page: 'dashboard' | 'profile' | 'events') => void;
   onLogout: () => void;
 }
 
@@ -13,7 +13,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
 
   const navigation = [
     { id: 'dashboard', label: 'Home', page: 'dashboard' as const },
-    { id: 'events', label: 'Events', page: 'dashboard' as const },
+    { id: 'events', label: 'Events', page: 'events' as const },
     { id: 'profile', label: 'Profile', page: 'profile' as const },
     { id: 'history', label: 'History', page: 'dashboard' as const },
   ];
