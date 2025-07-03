@@ -3,9 +3,10 @@ import { User } from '../App';
 
 interface DashboardProps {
   user: User | null;
+  onNavigate?: (page: 'dashboard' | 'profile' | 'events') => void;
 }
 
-const Dashboard: FC<DashboardProps> = ({ user }) => {
+const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
   if (!user) return null;
 
   const VolunteerDashboard = () => (
@@ -22,9 +23,12 @@ const Dashboard: FC<DashboardProps> = ({ user }) => {
             <div className="ml-3">
               <p className="text-sm text-green-700">
                 Your profile is 65% complete.{' '}
-                <a href="#" className="font-medium text-green-700 hover:text-green-600">
+                <button 
+                  onClick={() => onNavigate?.('profile')}
+                  className="font-medium text-green-700 hover:text-green-600"
+                >
                   Complete it now
-                </a>
+                </button>
               </p>
             </div>
           </div>
@@ -39,7 +43,10 @@ const Dashboard: FC<DashboardProps> = ({ user }) => {
               <span className="ml-2 text-sm text-gray-600">65/100</span>
             </div>
           </div>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+          <button 
+            onClick={() => onNavigate?.('profile')}
+            className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
             View Profile
           </button>
         </div>
@@ -48,7 +55,12 @@ const Dashboard: FC<DashboardProps> = ({ user }) => {
       <div className="glass-card p-6 organic-shadow">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-green-700">Upcoming Events</h2>
-          <a href="#" className="text-sm text-green-600 hover:text-green-500">View all</a>
+          <button 
+            onClick={() => onNavigate?.('events')}
+            className="text-sm text-green-600 hover:text-green-500"
+          >
+            View all
+          </button>
         </div>
         <div className="space-y-4">
           <div className="border-b border-gray-200 pb-4">
@@ -60,7 +72,10 @@ const Dashboard: FC<DashboardProps> = ({ user }) => {
             </div>
             <p className="mt-1 text-sm text-gray-500">Saturday, June 10 · 9:00 AM - 12:00 PM</p>
             <p className="mt-1 text-sm text-gray-500">Downtown Community Center</p>
-            <button className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <button 
+              onClick={() => onNavigate?.('events')}
+              className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
               View Details
             </button>
           </div>
@@ -73,7 +88,10 @@ const Dashboard: FC<DashboardProps> = ({ user }) => {
             </div>
             <p className="mt-1 text-sm text-gray-500">Saturday, June 17 · 8:00 AM - 2:00 PM</p>
             <p className="mt-1 text-sm text-gray-500">Northside Food Pantry</p>
-            <button className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <button 
+              onClick={() => onNavigate?.('events')}
+              className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
               View Details
             </button>
           </div>
