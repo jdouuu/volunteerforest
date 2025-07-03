@@ -13,6 +13,7 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [role, setRole] = useState<'volunteer' | 'admin'>('volunteer');
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -44,14 +45,31 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
       return;
     }
 
-    const userData: User = {
-      id: Date.now().toString(),
-      email,
-      name: name || email.split('@')[0],
-      role
-    };
+    if (isRegistering) {
+      // Registration successful - redirect to login
+      setShowSuccessMessage(true);
+      setIsRegistering(false);
+      setEmail('');
+      setPassword('');
+      setName('');
+      setRole('volunteer');
+      setErrors({});
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
+    } else {
+      // Login
+      const userData: User = {
+        id: Date.now().toString(),
+        email,
+        name: name || email.split('@')[0],
+        role
+      };
 
-    onLogin(userData);
+      onLogin(userData);
+    }
   };
 
   return (
@@ -60,6 +78,15 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
         <h2 className="text-3xl font-bold text-center text-green-700 mb-8">
           {isRegistering ? 'Join VolunteerMatch' : 'Welcome to VolunteerMatch'}
         </h2>
+        
+        {showSuccessMessage && (
+          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <div className="flex items-center">
+              <i className="fas fa-check-circle mr-2"></i>
+              <span>Registration successful! Please login with your credentials.</span>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {isRegistering && (
@@ -181,7 +208,11 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
             {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               type="button"
-              onClick={() => setIsRegistering(!isRegistering)}
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setShowSuccessMessage(false);
+                setErrors({});
+              }}
               className="font-medium text-green-600 hover:text-green-500"
             >
               {isRegistering ? 'Sign in here' : 'Register here'}
