@@ -10,9 +10,36 @@
   --dark: #212529;
   --glass: rgba(255, 255, 255, 0.25);
 }
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #e6f5e6 0%, #c8e6c9 100%);
   min-height: 100vh;
 }
-/* Add other classes like .glass-card, converting to Tailwind utilities */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.leaf-shape {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+}
+
+.organic-shadow {
+  box-shadow: 8px 8px 16px rgba(58, 125, 68, 0.2);
+}
+
+.notification-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #ff6b6b;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
