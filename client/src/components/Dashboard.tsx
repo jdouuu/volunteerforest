@@ -172,7 +172,10 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
                 High need for Weekend Food Bank (5 volunteers short)
               </p>
               <p className="text-sm text-gray-500">Skills needed: Food handling, Customer service</p>
-              <button className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+              <button
+                onClick={() => onNavigate('matching')}
+                className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
                 Match Volunteers
               </button>
             </div>

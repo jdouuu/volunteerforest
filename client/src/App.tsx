@@ -6,6 +6,7 @@ import Profile from './components/Profile';
 import Navbar from './components/Navbar';
 import Events from './components/Events';
 import History from './components/History';
+import VolunteerMatchingForm from './components/VolunteerMatchingForm';
 import Notifications from './components/Notifications';
 import NotificationToast from './components/NotificationToast';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
@@ -50,6 +51,8 @@ const AppContent = () => {
         return <History user={user} />;
       case 'notifications':
         return <Notifications user={user} />;
+      case 'matching':
+        return <VolunteerMatchingForm />;
       default:
         return <Login onLogin={handleLogin} />;
     }
