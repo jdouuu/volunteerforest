@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { User } from '../App';
+import NotificationTriggers from './NotificationTriggers';
 
 interface DashboardProps {
   user: User | null;
@@ -211,6 +212,10 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="glass-card p-6 organic-shadow">
+        <NotificationTriggers />
       </div>
     </div>
   );

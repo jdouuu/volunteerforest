@@ -1,5 +1,7 @@
-import { useState, FC } from 'react';
+import { FC } from 'react';
 import { User } from '../App';
+import NotificationDropdown from './NotificationDropdown';
+import { useNotifications } from '../context/NotificationContext';
 
 interface NavbarProps {
   user: User;
@@ -9,7 +11,7 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) => {
-  const [hasNotifications, setHasNotifications] = useState(true);
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
 
   const navigation = [
     { id: 'dashboard', label: 'Home', page: 'dashboard' as const },
@@ -54,16 +56,21 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
           </div>
           
           <div className="flex items-center">
-            <div className="relative mr-4">
-              <button 
-                onClick={() => setHasNotifications(!hasNotifications)}
-                className="p-1 rounded-full text-gray-700 hover:text-green-700 focus:outline-none"
-              >
-                <i className="fas fa-bell text-xl"></i>
-                {hasNotifications && (
-                  <span className="notification-dot"></span>
-                )}
-              </button>
+            <div className="mr-4">
+              <NotificationDropdown
+                notifications={notifications}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+                onNotificationClick={(notification) => {
+                  if (notification.actionUrl) {
+                    if (notification.actionUrl === '/events') {
+                      onNavigate('events');
+                    } else if (notification.actionUrl === '/profile') {
+                      onNavigate('profile');
+                    }
+                  }
+                }}
+              />
             </div>
             
             <div className="relative">

@@ -1,5 +1,7 @@
 import { useState, FC } from 'react';
 import { User } from '../App';
+import NotificationPreferencesComponent from './NotificationPreferences';
+import { useNotifications } from '../context/NotificationContext';
 
 interface ProfileProps {
   user: User | null;
@@ -18,6 +20,9 @@ interface ProfileData {
 
 const Profile: FC<ProfileProps> = ({ user }) => {
   if (!user) return null;
+
+  const { preferences, updatePreferences } = useNotifications();
+  const [activeTab, setActiveTab] = useState<'profile' | 'notifications'>('profile');
 
   const [profileData, setProfileData] = useState<ProfileData>({
     fullName: user.name || '',
@@ -204,8 +209,34 @@ const Profile: FC<ProfileProps> = ({ user }) => {
           </div>
         </div>
         
-        <div className="glass-card organic-shadow p-6 mb-8">
-          <form onSubmit={handleSubmit}>
+        <div className="mb-8">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'profile'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Profile Information
+            </button>
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'notifications'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Notification Settings
+            </button>
+          </nav>
+        </div>
+        
+        {activeTab === 'profile' && (
+          <div className="glass-card organic-shadow p-6 mb-8">
+            <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="col-span-2">
                 <h2 className="text-lg font-medium text-green-700 mb-4">Personal Information</h2>
@@ -374,7 +405,15 @@ const Profile: FC<ProfileProps> = ({ user }) => {
               </button>
             </div>
           </form>
-        </div>
+          </div>
+        )}
+        
+        {activeTab === 'notifications' && (
+          <NotificationPreferencesComponent
+            preferences={preferences}
+            onUpdatePreferences={updatePreferences}
+          />
+        )}
       </div>
     </div>
   );

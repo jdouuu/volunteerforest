@@ -1,6 +1,7 @@
 import { useState, FC, useEffect } from 'react';
 import { User } from '../App';
 import EventForm from './EventForm';
+import { useNotifications } from '../context/NotificationContext';
 
 interface EventsProps {
   user: User | null;
@@ -28,6 +29,13 @@ export interface Event {
 
 const Events: FC<EventsProps> = ({ user }) => {
   if (!user) return null;
+
+  const { 
+    triggerEventAssignment, 
+    triggerEventUpdate, 
+    triggerEventReminder, 
+    triggerVolunteerMatch 
+  } = useNotifications();
 
   const [events, setEvents] = useState<Event[]>([
     // Environmental Events
@@ -565,6 +573,11 @@ const Events: FC<EventsProps> = ({ user }) => {
   }, [events, searchTerm, selectedCategory, selectedStatus]);
 
   const handleRegisterForEvent = (eventId: string) => {
+    const event = events.find(e => e.id === eventId);
+    if (event) {
+      triggerEventAssignment(event.title, eventId);
+    }
+    
     setEvents(prev => prev.map(event => 
       event.id === eventId 
         ? { ...event, currentVolunteers: Math.min(event.currentVolunteers + 1, event.maxVolunteers) }

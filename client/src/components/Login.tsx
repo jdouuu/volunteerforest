@@ -106,22 +106,20 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
-          {isRegistering && (
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Account Type
-              </label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as 'volunteer' | 'admin')}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="volunteer">Volunteer</option>
-                <option value="admin">Administrator</option>
-              </select>
-            </div>
-          )}
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+              {isRegistering ? 'Account Type' : 'Login As'}
+            </label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value as 'volunteer' | 'admin')}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="volunteer">Volunteer</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
 
           {!isRegistering && (
             <div className="flex items-center justify-between">
