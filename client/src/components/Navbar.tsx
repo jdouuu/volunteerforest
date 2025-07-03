@@ -6,7 +6,7 @@ import { useNotifications } from '../context/NotificationContext';
 interface NavbarProps {
   user: User;
   currentPage: string;
-  onNavigate: (page: 'dashboard' | 'profile' | 'events') => void;
+  onNavigate: (page: 'dashboard' | 'profile' | 'events' | 'history' | 'notifications') => void;
   onLogout: () => void;
 }
 
@@ -16,8 +16,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
   const navigation = [
     { id: 'dashboard', label: 'Home', page: 'dashboard' as const },
     { id: 'events', label: 'Events', page: 'events' as const },
-    { id: 'profile', label: 'Profile', page: 'profile' as const },
-    { id: 'history', label: 'History', page: 'dashboard' as const },
+    { id: 'history', label: 'History', page: 'history' as const },
   ];
 
   if (user.role === 'admin') {
@@ -70,6 +69,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
                     }
                   }
                 }}
+                onViewAllClick={() => onNavigate('notifications')}
               />
             </div>
             
@@ -80,9 +80,12 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
                   src="https://placehold.co/32x32" 
                   alt="User profile picture"
                 />
-                <span className="ml-2 text-gray-700 font-medium">
+                <button
+                  onClick={() => onNavigate('profile')}
+                  className="ml-2 text-gray-700 font-medium hover:text-green-700 focus:outline-none"
+                >
                   {user.name}
-                </span>
+                </button>
                 <button
                   onClick={onLogout}
                   className="ml-4 px-3 py-1 text-sm text-gray-600 hover:text-green-700 focus:outline-none"

@@ -6,13 +6,15 @@ interface NotificationDropdownProps {
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onNotificationClick: (notification: Notification) => void;
+  onViewAllClick: () => void;
 }
 
 const NotificationDropdown: FC<NotificationDropdownProps> = ({
   notifications,
   onMarkAsRead,
   onMarkAllAsRead,
-  onNotificationClick
+  onNotificationClick,
+  onViewAllClick
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -65,11 +67,13 @@ const NotificationDropdown: FC<NotificationDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1 rounded-full text-gray-700 hover:text-green-700 focus:outline-none relative"
+        className={`p-1 rounded-full text-gray-700 hover:text-green-700 focus:outline-none relative ${
+          unreadCount > 0 ? 'notification-pulse' : ''
+        }`}
       >
         <i className="fas fa-bell text-xl"></i>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -148,7 +152,10 @@ const NotificationDropdown: FC<NotificationDropdownProps> = ({
           {notifications.length > 0 && (
             <div className="p-3 border-t border-gray-200 bg-gray-50">
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  onViewAllClick();
+                  setIsOpen(false);
+                }}
                 className="w-full text-center text-sm text-green-600 hover:text-green-800"
               >
                 View all notifications

@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import Navbar from './components/Navbar';
 import Events from './components/Events';
+import History from './components/History';
+import Notifications from './components/Notifications';
 import NotificationToast from './components/NotificationToast';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
 
@@ -18,7 +20,7 @@ export interface User {
 }
 
 const AppContent = () => {
-  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'profile' | 'events'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'profile' | 'events' | 'history' | 'notifications'>('login');
   const [user, setUser] = useState<User | null>(null);
   const { notifications } = useNotifications();
 
@@ -37,11 +39,15 @@ const AppContent = () => {
       case 'login':
         return <Login onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard user={user} onNavigate={setCurrentPage} />;
+        return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
       case 'profile':
         return <Profile user={user} />;
       case 'events':
         return <Events user={user} />;
+      case 'history':
+        return <History user={user} />;
+      case 'notifications':
+        return <Notifications user={user} />;
       default:
         return <Login onLogin={handleLogin} />;
     }
@@ -53,11 +59,13 @@ const AppContent = () => {
         <Navbar 
           user={user} 
           currentPage={currentPage}
-          onNavigate={setCurrentPage}
+          onNavigate={(page) => setCurrentPage(page)}
           onLogout={handleLogout}
         />
       )}
-      {renderCurrentPage()}
+      <div className="page-transition">
+        {renderCurrentPage()}
+      </div>
       {user && <NotificationToast notifications={notifications} />}
     </div>
   );
