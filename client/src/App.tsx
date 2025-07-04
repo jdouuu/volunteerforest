@@ -21,7 +21,7 @@ export interface User {
 }
 
 const AppContent = () => {
-  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching'>('login');
   const [user, setUser] = useState<User | null>(null);
   const { notifications } = useNotifications();
 

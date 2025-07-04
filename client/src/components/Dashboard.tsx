@@ -4,7 +4,7 @@ import NotificationTriggers from './NotificationTriggers';
 
 interface DashboardProps {
   user: User | null;
-  onNavigate?: (page: 'dashboard' | 'profile' | 'events' | 'history' | 'notifications') => void;
+  onNavigate?: (page: 'dashboard' | 'profile' | 'events' | 'history' | 'notifications' | 'matching') => void;
 }
 
 const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {

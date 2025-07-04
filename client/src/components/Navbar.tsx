@@ -6,7 +6,7 @@ import { useNotifications } from '../context/NotificationContext';
 interface NavbarProps {
   user: User;
   currentPage: string;
-  onNavigate: (page: 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications') => void;
+  onNavigate: (page: 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching') => void;
   onLogout: () => void;
 }
 
@@ -15,6 +15,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
 
   const navigation = user.role === 'admin' ? [
     { id: 'admin', label: 'Dashboard', page: 'admin' as const },
+    { id: 'matching', label: 'Matching', page: 'matching' as const },
     { id: 'events', label: 'Events', page: 'events' as const },
     { id: 'history', label: 'History', page: 'history' as const },
   ] : [
@@ -30,7 +31,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <img 
-                src="https://placehold.co/40x40" 
+                src="/logo.png" 
                 alt="VolunteerMatch leaf logo in green and white" 
                 className="h-8 w-8"
               />
@@ -42,7 +43,7 @@ const Navbar: FC<NavbarProps> = ({ user, currentPage, onNavigate, onLogout }) =>
                     key={item.id}
                     onClick={() => onNavigate(item.page)}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      (currentPage === item.page || (currentPage === 'admin' && item.id === 'admin') || (currentPage === 'dashboard' && item.id === 'dashboard'))
+                      (currentPage === item.page || (currentPage === 'admin' && item.id === 'admin') || (currentPage === 'dashboard' && item.id === 'dashboard') || (currentPage === 'matching' && item.id === 'matching'))
                         ? 'text-green-700'
                         : 'text-gray-700 hover:text-green-700'
                     }`}
