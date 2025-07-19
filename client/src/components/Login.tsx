@@ -1,11 +1,8 @@
 import { useState, FC } from 'react';
-import { User } from '../App';
+import { useAuth } from '../context/AuthContext';
 
-interface LoginProps {
-  onLogin: (user: User) => void;
-}
-
-const Login: FC<LoginProps> = ({ onLogin }) => {
+const Login: FC = () => {
+  const { login, register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -38,37 +35,43 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
-    if (isRegistering) {
-      // Registration successful - redirect to login
-      setShowSuccessMessage(true);
-      setIsRegistering(false);
-      setEmail('');
-      setPassword('');
-      setName('');
-      setRole('volunteer');
-      setErrors({});
-      
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
-    } else {
-      // Login
-      const userData: User = {
-        id: Date.now().toString(),
-        email,
-        name: name || email.split('@')[0],
-        role
-      };
-
-      onLogin(userData);
+    try {
+      if (isRegistering) {
+        // Registration
+        const success = await register(name, email, password);
+        if (success) {
+          setShowSuccessMessage(true);
+          setIsRegistering(false);
+          setEmail('');
+          setPassword('');
+          setName('');
+          setRole('volunteer');
+          setErrors({});
+          
+          // Hide success message after 5 seconds
+          setTimeout(() => {
+            setShowSuccessMessage(false);
+          }, 5000);
+        } else {
+          setErrors({ general: 'Registration failed. Please try again.' });
+        }
+      } else {
+        // Login
+        const success = await login(email, password);
+        if (!success) {
+          setErrors({ general: 'Invalid email or password.' });
+        }
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      setErrors({ general: 'An error occurred. Please try again.' });
     }
   };
 
@@ -84,6 +87,15 @@ const Login: FC<LoginProps> = ({ onLogin }) => {
             <div className="flex items-center">
               <i className="fas fa-check-circle mr-2"></i>
               <span>Registration successful! Please login with your credentials.</span>
+            </div>
+          </div>
+        )}
+        
+        {errors.general && (
+          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="flex items-center">
+              <i className="fas fa-exclamation-circle mr-2"></i>
+              <span>{errors.general}</span>
             </div>
           </div>
         )}

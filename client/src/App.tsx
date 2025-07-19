@@ -10,35 +10,37 @@ import VolunteerMatchingForm from './components/VolunteerMatchingForm';
 import Notifications from './components/Notifications';
 import NotificationToast from './components/NotificationToast';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
-
-export type UserRole = 'volunteer' | 'admin';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-}
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching'>('login');
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, logout } = useAuth();
   const { notifications } = useNotifications();
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-    setCurrentPage(userData.role === 'admin' ? 'admin' : 'dashboard');
-  };
-
   const handleLogout = () => {
-    setUser(null);
+    logout();
     setCurrentPage('login');
   };
 
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <Login />;
+  }
+
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'login':
-        return <Login onLogin={handleLogin} />;
       case 'dashboard':
         return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
       case 'admin':
@@ -54,7 +56,7 @@ const AppContent = () => {
       case 'matching':
         return <VolunteerMatchingForm />;
       default:
-        return <Login onLogin={handleLogin} />;
+        return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
     }
   };
 
@@ -78,9 +80,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <NotificationProvider>
-      <AppContent />
-    </NotificationProvider>
+    <AuthProvider>
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
+    </AuthProvider>
   );
 }
 
