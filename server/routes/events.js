@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
 const auth = require('../middleware/auth');
+const { validateEventCreation, validateEventUpdate, validateObjectId, validatePagination } = require('../middleware/validation');
 
 // Create a new event (admin only)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validateEventCreation, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({
@@ -29,7 +30,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Get all events
-router.get('/', async (req, res) => {
+router.get('/', validatePagination, async (req, res) => {
   try {
     const { status, eventType, limit = 20, page = 1 } = req.query;
     
@@ -63,7 +64,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get event by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateObjectId('id'), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -86,7 +87,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update event (admin only)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, validateObjectId('id'), validateEventUpdate, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({
@@ -121,7 +122,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Delete event (admin only)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, validateObjectId('id'), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({
@@ -151,7 +152,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // Register volunteer for event
-router.post('/:id/register', auth, async (req, res) => {
+router.post('/:id/register', auth, validateObjectId('id'), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {

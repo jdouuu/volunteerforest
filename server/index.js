@@ -19,6 +19,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/volunteers', require('./routes/volunteers'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/matching', require('./routes/matching'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/history', require('./routes/history'));
 
 // Basic route
 app.get('/', (req, res) => {

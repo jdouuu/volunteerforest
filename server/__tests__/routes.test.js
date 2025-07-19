@@ -56,20 +56,29 @@ describe('API Routes', () => {
         _id: '123',
         name: 'John Doe',
         email: 'john@example.com',
-        role: 'volunteer'
+        role: 'volunteer',
+        getProfileCompletion: jest.fn().mockReturnValue(65)
       };
 
       Volunteer.findOne.mockResolvedValue(null);
-      Volunteer.mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(mockVolunteer)
-      }));
+      Volunteer.mockImplementation(() => {
+        const instance = {
+          _id: '123',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'volunteer',
+          save: jest.fn().mockResolvedValue(mockVolunteer),
+          getProfileCompletion: jest.fn().mockReturnValue(65)
+        };
+        return instance;
+      });
 
       const response = await request(app)
         .post('/api/volunteers/register')
         .send({
           name: 'John Doe',
           email: 'john@example.com',
-          password: 'password123'
+          password: 'Password123'
         });
 
       expect(response.status).toBe(201);
@@ -97,7 +106,7 @@ describe('API Routes', () => {
         .post('/api/volunteers/login')
         .send({
           email: 'john@example.com',
-          password: 'password123'
+          password: 'Password123'
         });
 
       expect(response.status).toBe(200);
@@ -112,7 +121,9 @@ describe('API Routes', () => {
         next();
       });
 
-      Volunteer.findById.mockResolvedValue(mockUser);
+      Volunteer.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser)
+      });
 
       const response = await request(app)
         .get('/api/volunteers/profile')
@@ -153,7 +164,7 @@ describe('API Routes', () => {
       Event.findById.mockResolvedValue(mockEvent);
 
       const response = await request(app)
-        .get('/api/events/123');
+        .get('/api/events/507f1f77bcf86cd799439011');
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -162,26 +173,38 @@ describe('API Routes', () => {
 
     test('POST /api/events should create new event (admin only)', async () => {
       const mockUser = { role: 'admin' };
-      const mockEvent = { _id: '123', title: 'New Event', description: 'Description' };
+      const mockEvent = { 
+        _id: '123', 
+        title: 'New Event', 
+        description: 'Description',
+        eventType: 'environmental',
+        startDate: new Date(),
+        endDate: new Date(),
+        duration: 3,
+        maxVolunteers: 10
+      };
 
       auth.mockImplementation((req, res, next) => {
         req.user = mockUser;
         next();
       });
 
-      Event.mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(mockEvent)
-      }));
+      const mockSavedEvent = { ...mockEvent };
+      Event.mockImplementation(() => {
+        const instance = { ...mockEvent };
+        instance.save = jest.fn().mockResolvedValue(mockSavedEvent);
+        return instance;
+      });
 
       const response = await request(app)
         .post('/api/events')
         .set('Authorization', 'Bearer test-token')
         .send({
           title: 'New Event',
-          description: 'Description',
+          description: 'Test event description for testing purposes',
           eventType: 'environmental',
-          startDate: new Date(),
-          endDate: new Date(),
+          startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          endDate: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
           duration: 3,
           maxVolunteers: 10
         });
@@ -243,8 +266,22 @@ describe('API Routes', () => {
     });
 
     test('POST /api/matching/calculate-score should calculate match score', async () => {
-      const mockVolunteer = { _id: '123', name: 'John Doe', skills: ['gardening'] };
-      const mockEvent = { _id: '456', title: 'Event', requiredSkills: ['gardening'] };
+      const mockVolunteer = { 
+        _id: '123', 
+        name: 'John Doe', 
+        skills: ['gardening'],
+        location: {
+          coordinates: { lat: 40.7128, lng: -74.0060 }
+        }
+      };
+      const mockEvent = { 
+        _id: '456', 
+        title: 'Event', 
+        requiredSkills: ['gardening'],
+        location: {
+          coordinates: { lat: 40.7589, lng: -73.9851 }
+        }
+      };
 
       auth.mockImplementation((req, res, next) => {
         req.user = { role: 'admin' };
@@ -260,8 +297,8 @@ describe('API Routes', () => {
         .post('/api/matching/calculate-score')
         .set('Authorization', 'Bearer test-token')
         .send({
-          volunteerId: '123',
-          eventId: '456'
+          volunteerId: '507f1f77bcf86cd799439011',
+          eventId: '507f1f77bcf86cd799439012'
         });
 
       expect(response.status).toBe(200);

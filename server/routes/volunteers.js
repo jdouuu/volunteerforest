@@ -4,9 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Volunteer = require('../models/Volunteer');
 const auth = require('../middleware/auth');
+const { validateVolunteerRegistration, validateVolunteerLogin, validateProfileUpdate, validateObjectId } = require('../middleware/validation');
 
 // Register a new volunteer
-router.post('/register', async (req, res) => {
+router.post('/register', validateVolunteerRegistration, async (req, res) => {
   try {
     const { name, email, password, role = 'volunteer' } = req.body;
 
@@ -62,7 +63,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login volunteer
-router.post('/login', async (req, res) => {
+router.post('/login', validateVolunteerLogin, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -129,7 +130,7 @@ router.get('/profile', auth, async (req, res) => {
 });
 
 // Update volunteer profile
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, validateProfileUpdate, async (req, res) => {
   try {
     const updates = req.body;
     delete updates.password; // Don't allow password update through this route

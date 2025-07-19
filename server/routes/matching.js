@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const matchingService = require('../services/matchingService');
 const auth = require('../middleware/auth');
+const { validateMatchingScore, validateObjectId, validatePagination } = require('../middleware/validation');
 
 // Get matching events for a volunteer
-router.get('/events/:volunteerId', auth, async (req, res) => {
+router.get('/events/:volunteerId', auth, validateObjectId('volunteerId'), validatePagination, async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const { limit = 10 } = req.query;
@@ -25,7 +26,7 @@ router.get('/events/:volunteerId', auth, async (req, res) => {
 });
 
 // Get matching volunteers for an event
-router.get('/volunteers/:eventId', auth, async (req, res) => {
+router.get('/volunteers/:eventId', auth, validateObjectId('eventId'), validatePagination, async (req, res) => {
   try {
     const { eventId } = req.params;
     const { limit = 20 } = req.query;
@@ -81,7 +82,7 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Calculate match score between volunteer and event
-router.post('/calculate-score', auth, async (req, res) => {
+router.post('/calculate-score', auth, validateMatchingScore, async (req, res) => {
   try {
     const { volunteerId, eventId } = req.body;
     
