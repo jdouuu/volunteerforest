@@ -12,6 +12,9 @@ import NotificationToast from './components/NotificationToast';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
+const LoginWithCallback = Login as React.FC<{ onLoginSuccess?: () => void }>;
+
+
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching'>('login');
   const { user, loading, logout } = useAuth();
