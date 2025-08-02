@@ -92,14 +92,23 @@ const UserProfileSchema = new mongoose.Schema({
     type: String,
     trim: true,
     uppercase: true,
-    minlength: [2, 'State must be 2 characters long'],
-    maxlength: [2, 'State must be 2 characters long'],
+    validate: {
+      validator: function(v) {
+        return !v || (v.length === 2);
+      },
+      message: 'State must be exactly 2 characters long'
+    },
     default: ''
   },
   zipcode: {
     type: String,
     trim: true,
-    match: [/^\d{5}(-\d{4})?$/, 'Please enter a valid zip code'],
+    validate: {
+      validator: function(v) {
+        return !v || /^\d{5}(-\d{4})?$/.test(v);
+      },
+      message: 'Please enter a valid zip code'
+    },
     default: ''
   },
   skills: {
