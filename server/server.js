@@ -1,5 +1,6 @@
 // server/server.js
 const express = require('express');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
@@ -12,6 +13,9 @@ dotenv.config(); // Load environment variables from .env file
 connectDB(); // Connect to MongoDB
 
 const app = express();
+
+// CORS middleware
+app.use(cors());
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
