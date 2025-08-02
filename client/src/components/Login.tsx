@@ -43,27 +43,27 @@ const Login: FC = () => {
     }
 
     try {
-      if (isRegistering) {
+    if (isRegistering) {
         // Registration
         const success = await register(name, email, password);
         if (success) {
-          setShowSuccessMessage(true);
-          setIsRegistering(false);
-          setEmail('');
-          setPassword('');
-          setName('');
-          setRole('volunteer');
-          setErrors({});
-          
-          // Hide success message after 5 seconds
-          setTimeout(() => {
-            setShowSuccessMessage(false);
-          }, 5000);
+      setShowSuccessMessage(true);
+      setIsRegistering(false);
+      setEmail('');
+      setPassword('');
+      setName('');
+      setRole('volunteer');
+      setErrors({});
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
         } else {
           setErrors({ general: 'Registration failed. Please try again.' });
         }
-      } else {
-        // Login
+    } else {
+      // Login
         const success = await login(email, password);
         if (!success) {
           setErrors({ general: 'Invalid email or password.' });

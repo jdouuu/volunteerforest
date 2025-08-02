@@ -96,24 +96,24 @@ const Events: FC<EventsProps> = ({ user }) => {
         console.error('Error fetching events:', error);
         // Fallback to mock data if API fails
         setEvents([
-          {
-            id: '1',
-            title: 'Community Garden Planting',
-            description: 'Join us for a day of planting vegetables and herbs in our community garden. Perfect for all skill levels!',
-            date: '2024-06-15',
-            startTime: '09:00',
-            endTime: '12:00',
-            location: 'Downtown Community Center, 123 Main St',
-            maxVolunteers: 20,
-            currentVolunteers: 15,
-            category: 'environmental',
-            skills: ['gardening', 'physical labor'],
-            status: 'upcoming',
-            organizer: 'Green Thumb Initiative',
-            contactEmail: 'garden@community.org',
-            contactPhone: '(555) 123-4567',
-            requirements: 'Bring comfortable clothes and water bottle. Tools provided.',
-            imageUrl: 'https://placehold.co/400x200/4ade80/ffffff?text=Community+Garden'
+    {
+      id: '1',
+      title: 'Community Garden Planting',
+      description: 'Join us for a day of planting vegetables and herbs in our community garden. Perfect for all skill levels!',
+      date: '2024-06-15',
+      startTime: '09:00',
+      endTime: '12:00',
+      location: 'Downtown Community Center, 123 Main St',
+      maxVolunteers: 20,
+      currentVolunteers: 15,
+      category: 'environmental',
+      skills: ['gardening', 'physical labor'],
+      status: 'upcoming',
+      organizer: 'Green Thumb Initiative',
+      contactEmail: 'garden@community.org',
+      contactPhone: '(555) 123-4567',
+      requirements: 'Bring comfortable clothes and water bottle. Tools provided.',
+      imageUrl: 'https://placehold.co/400x200/4ade80/ffffff?text=Community+Garden'
           }
         ]);
       } finally {
@@ -336,51 +336,51 @@ const Events: FC<EventsProps> = ({ user }) => {
 
         {/* Events Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map(event => (
-              <div key={event.id} className="glass-card organic-shadow overflow-hidden">
-                {event.imageUrl && (
-                  <div className="h-48 bg-gray-200">
-                    <img
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map(event => (
+            <div key={event.id} className="glass-card organic-shadow overflow-hidden">
+              {event.imageUrl && (
+                <div className="h-48 bg-gray-200">
+                  <img
+                    src={event.imageUrl}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+                    {event.status}
+                  </span>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <i className="fas fa-calendar mr-2"></i>
+                    {formatDate(event.date)}
                   </div>
-                )}
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
-                      {event.status}
-                    </span>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <i className="fas fa-clock mr-2"></i>
+                    {event.startTime} - {event.endTime}
                   </div>
-                  
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">{event.description}</p>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <i className="fas fa-calendar mr-2"></i>
-                      {formatDate(event.date)}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <i className="fas fa-clock mr-2"></i>
-                      {event.startTime} - {event.endTime}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <i className="fas fa-map-marker-alt mr-2"></i>
-                      {event.location}
-                    </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <i className="fas fa-map-marker-alt mr-2"></i>
+                    {event.location}
+                  </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <i className="fas fa-users mr-2"></i>
                       {event.currentVolunteers}/{event.maxVolunteers} volunteers
                     </div>
-                  </div>
+                </div>
 
                   <div className="flex flex-wrap gap-1 mb-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
-                      {event.category}
-                    </span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(event.category)}`}>
+                    {event.category}
+                  </span>
                     {event.skills.slice(0, 2).map(skill => (
                       <span key={skill} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         {skill}
@@ -389,41 +389,41 @@ const Events: FC<EventsProps> = ({ user }) => {
                     {event.skills.length > 2 && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         +{event.skills.length - 2} more
-                      </span>
+                  </span>
                     )}
-                  </div>
+                </div>
 
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setShowEventModal(true);
-                      }}
+                                 <div className="flex space-x-2">
+                   <button
+                     onClick={() => {
+                       setSelectedEvent(event);
+                       setShowEventModal(true);
+                     }}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    >
-                      View Details
-                    </button>
+                   >
+                     View Details
+                   </button>
                     {!isUserRegistered(event.id) ? (
-                      <button
+                     <button
                         onClick={() => handleRegisterForEvent(event.id)}
                         disabled={event.currentVolunteers >= event.maxVolunteers}
                         className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
                         {event.currentVolunteers >= event.maxVolunteers ? 'Full' : 'Register'}
-                      </button>
+                     </button>
                     ) : (
-                      <button
+                       <button
                         onClick={() => handleUnregisterFromEvent(event.id)}
                         className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
+                       >
                         Unregister
-                      </button>
-                    )}
-                  </div>
-                </div>
+                       </button>
+                   )}
+                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
         )}
 
         {/* Empty State */}
@@ -457,7 +457,7 @@ const Events: FC<EventsProps> = ({ user }) => {
                 Next
               </button>
             </nav>
-          </div>
+      </div>
         )}
 
         {/* Modals */}
@@ -468,10 +468,10 @@ const Events: FC<EventsProps> = ({ user }) => {
           />
         )}
 
-        {showEventModal && selectedEvent && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
+      {showEventModal && selectedEvent && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">{selectedEvent.title}</h3>
                 <p className="text-sm text-gray-600 mb-4">{selectedEvent.description}</p>
                 
@@ -491,7 +491,7 @@ const Events: FC<EventsProps> = ({ user }) => {
                   <div className="flex items-center text-sm text-gray-500">
                     <i className="fas fa-users mr-2"></i>
                     {selectedEvent.currentVolunteers}/{selectedEvent.maxVolunteers} volunteers
-                  </div>
+              </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <i className="fas fa-user mr-2"></i>
                     Organized by {selectedEvent.organizer}
@@ -499,23 +499,23 @@ const Events: FC<EventsProps> = ({ user }) => {
                   <div className="flex items-center text-sm text-gray-500">
                     <i className="fas fa-envelope mr-2"></i>
                     {selectedEvent.contactEmail}
-                  </div>
+                </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <i className="fas fa-phone mr-2"></i>
                     {selectedEvent.contactPhone}
-                  </div>
                 </div>
+              </div>
 
-                <div className="mb-4">
+              <div className="mb-4">
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Required Skills:</h4>
                   <div className="flex flex-wrap gap-1">
-                    {selectedEvent.skills.map(skill => (
+                  {selectedEvent.skills.map(skill => (
                       <span key={skill} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+                      {skill}
+                    </span>
+                  ))}
                 </div>
+              </div>
 
                 <div className="mb-4">
                   <h4 className="text-sm font-medium text-gray-900 mb-2">Requirements:</h4>
@@ -541,22 +541,22 @@ const Events: FC<EventsProps> = ({ user }) => {
                       {selectedEvent.currentVolunteers >= selectedEvent.maxVolunteers ? 'Full' : 'Register'}
                     </button>
                   ) : (
-                    <button
-                      onClick={() => {
+                  <button
+                    onClick={() => {
                         handleUnregisterFromEvent(selectedEvent.id);
-                        setShowEventModal(false);
-                      }}
+                      setShowEventModal(false);
+                    }}
                       className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                     >
                       Unregister
-                    </button>
+                  </button>
                   )}
                 </div>
               </div>
             </div>
           </div>
         )}
-      </div>
+        </div>
     </div>
   );
 };
