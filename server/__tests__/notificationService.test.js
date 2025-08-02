@@ -181,7 +181,7 @@ describe('NotificationService', () => {
       const mockTransporter = {
         verify: jest.fn().mockRejectedValue(new Error('Connection failed'))
       };
-      nodemailer.createTransporter.mockReturnValue(mockTransporter);
+      nodemailer.createTransport.mockReturnValue(mockTransporter);
 
       // Create a new instance to get the failed transporter
       const NotificationService = require('../services/notificationService');

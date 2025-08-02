@@ -19,8 +19,11 @@ let userId;
 
 beforeAll(async () => {
   const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/volunteermatch_test';
-  await mongoose.connect(mongoUri);
-});
+  await mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000
+  });
+}, 15000);
 
 afterEach(async () => {
   await UserCredentials.deleteMany({});
@@ -29,7 +32,7 @@ afterEach(async () => {
 
 afterAll(async () => {
   await mongoose.connection.close();
-});
+}, 10000);
 
 jest.mock('../models/UserCredentials'); // Mock UserCredentials model
 jest.mock('../models/UserProfile'); // Mock UserProfile model
