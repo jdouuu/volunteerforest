@@ -167,12 +167,13 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
+    this.baseURL = (import.meta as any).env?.VITE_API_URL || 'https://volunteerforest.vercel.app';
     this.api = axios.create({
       baseURL: this.baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
+      timeout: 10000, // 10 second timeout
     });
 
     // Add request interceptor to include auth token
@@ -207,49 +208,53 @@ class ApiService {
   // Check if backend is available
   private async isBackendAvailable(): Promise<boolean> {
     try {
-      await this.api.get('/');
-      return true;
+      const response = await this.api.get('/');
+      return response.status === 200;
     } catch (error) {
+      console.warn('Backend check failed:', error);
       return false;
     }
   }
 
-  // Get the appropriate service (real or mock)
+  // Get the appropriate service (real or mock) - only for non-auth endpoints
   private async getService() {
     const isAvailable = await this.isBackendAvailable();
     if (!isAvailable) {
-      console.warn('Backend not available, using mock data');
+      console.warn('Backend not available, using mock data for non-critical endpoints');
       return new MockApiService();
     }
     return this;
   }
 
-  // Authentication
+  // Authentication - ALWAYS use real backend, never mock
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
-    const service = await this.getService();
-    if (service instanceof MockApiService) {
-      return service.login(credentials);
+    try {
+      const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/api/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
-    const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/volunteers/login', credentials);
-    return response.data;
   }
 
   async register(data: RegisterData): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
-    const service = await this.getService();
-    if (service instanceof MockApiService) {
-      return service.register(data);
+    try {
+      const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/api/auth/register', {
+        userId: data.email,
+        password: data.password
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
     }
-    const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/volunteers/register', data);
-    return response.data;
   }
 
   async verifyToken(): Promise<ApiResponse<{ user: Volunteer }>> {
-    const service = await this.getService();
-    if (service instanceof MockApiService) {
-      return service.verifyToken();
+    try {
+      const response: AxiosResponse<ApiResponse<{ user: Volunteer }>> = await this.api.get('/api/auth/me');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Token verification failed');
     }
-    const response: AxiosResponse<ApiResponse<{ user: Volunteer }>> = await this.api.get('/auth/verify');
-    return response.data;
   }
 
   // Volunteer Management
