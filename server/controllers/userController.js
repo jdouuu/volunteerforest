@@ -1,6 +1,15 @@
 // server/controllers/userController.js
 const UserProfile = require('../models/UserProfile');
 const asyncHandler = require('express-async-handler');
+const getAllUserProfiles = asyncHandler(async (req, res) => {
+  const profiles = await UserProfile.find({}).populate('userId', 'userId');
+  if (profiles.length === 0) {
+    res.status(404);
+    throw new Error('No user profiles found');
+  }
+  res.json(profiles);
+});
+
 
 /**
  * @route GET /api/users/profile
@@ -53,3 +62,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error('User  profile not found');
   }
 });
+
+module.exports = {
+  getUserProfile,
+  updateUserProfile,
+  getAllUserProfiles
+};
+
