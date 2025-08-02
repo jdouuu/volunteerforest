@@ -208,5 +208,7 @@ EventDetailsSchema.methods.daysUntilEvent = function() {
 EventDetailsSchema.methods.getAvailableSpots = function() {
   return this.maxVolunteers - this.currentVolunteers;
 };
-
+EventDetailsSchema.virtual('availableSpots').get(function() {
+  return this.maxVolunteers - this.currentVolunteers;
+});
 module.exports = mongoose.model('EventDetails', EventDetailsSchema);
