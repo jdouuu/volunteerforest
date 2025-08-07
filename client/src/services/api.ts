@@ -170,6 +170,11 @@ class ApiService {
     // Force production URL for deployed version
     this.baseURL = 'https://volunteerforest.vercel.app';
     console.log('🌐 API Service: Using base URL:', this.baseURL);
+    console.log('🌐 Environment check:', {
+      isProduction: (import.meta as any).env?.PROD,
+      mode: (import.meta as any).env?.MODE,
+      hostname: window.location.hostname
+    });
     
     this.api = axios.create({
       baseURL: this.baseURL,
@@ -221,6 +226,8 @@ class ApiService {
 
   // Get the appropriate service (real or mock) - NEVER use for authentication
   private async getService() {
+    console.warn('⚠️ getService() called - this should NEVER happen during authentication!');
+    console.trace('getService() call stack');
     const isAvailable = await this.isBackendAvailable();
     if (!isAvailable) {
       console.warn('Backend not available, using mock data for non-critical endpoints');
