@@ -14,17 +14,48 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 
-// CORS middleware
-app.use(cors());
+// CORS middleware with specific configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://volunteerforest.vercel.app', 'https://www.volunteerforest.vercel.app']
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+
+// Add request logging for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('Body:', req.body);
+  }
+  next();
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/history', eventRoutes); // History routes are also part of eventRoutes for now
+
+// Debug route for Vercel deployment
+app.get('/api/debug', (req, res) => {
+  const mongoose = require('mongoose');
+  res.json({
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    mongoUri: process.env.MONGO_URI ? 'configured' : 'missing',
+    jwtSecret: process.env.JWT_SECRET ? 'configured' : 'missing',
+    vercel: process.env.VERCEL || 'not set',
+    mongoConnection: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
 
 // Serve frontend static files in production
 // This block should be placed after all API routes
@@ -49,8 +80,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
+// Export the app for Vercel serverless deployment
+module.exports = app;
+
+// Only listen if not in Vercel serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  });
+}
 
 
