@@ -167,7 +167,10 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = (import.meta as any).env?.VITE_API_URL || 'https://volunteerforest.vercel.app';
+    // Force production URL for deployed version
+    this.baseURL = 'https://volunteerforest.vercel.app';
+    console.log('🌐 API Service: Using base URL:', this.baseURL);
+    
     this.api = axios.create({
       baseURL: this.baseURL,
       headers: {
@@ -216,7 +219,7 @@ class ApiService {
     }
   }
 
-  // Get the appropriate service (real or mock) - only for non-auth endpoints
+  // Get the appropriate service (real or mock) - NEVER use for authentication
   private async getService() {
     const isAvailable = await this.isBackendAvailable();
     if (!isAvailable) {
@@ -226,39 +229,20 @@ class ApiService {
     return this;
   }
 
-  // Authentication - ALWAYS use real backend, never mock
+    // Authentication methods - NEVER use getService(), ALWAYS use real backend directly
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
+    // DIRECT API CALL - NO getService() fallback - NO MOCK DATA EVER
+    console.log('🔒 AUTHENTICATION: Using direct API call, no fallback');
     try {
-      console.log('🔐 LOGIN ATTEMPT - Starting login with credentials:', { email: credentials.email });
-      console.log('🔐 LOGIN ATTEMPT - API base URL:', this.api.defaults.baseURL);
-      console.log('🔐 LOGIN ATTEMPT - Making request to /api/auth/login');
-      
       const response: AxiosResponse<any> = await this.api.post('/api/auth/login', {
         userId: credentials.email,
         password: credentials.password
       });
       
-      console.log('🔐 LOGIN SUCCESS - Backend response:', response.data);
-      console.log('🔐 LOGIN SUCCESS - Response status:', response.status);
-      console.log('🔐 LOGIN SUCCESS - Response headers:', response.headers);
-      
-      // Check if we actually got JSON response, not HTML
-      if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-        console.error('🔐 LOGIN FAILED - Received HTML instead of JSON! Routing issue detected.');
-        console.error('🔐 LOGIN FAILED - HTML content:', response.data.substring(0, 200) + '...');
-        throw new Error('Server returned HTML instead of JSON - routing configuration error');
-      }
-      
-      // Validate that response has expected structure
-      if (!response.data || typeof response.data !== 'object') {
-        console.error('🔐 LOGIN FAILED - Invalid response structure:', response.data);
-        throw new Error('Invalid response format from server');
-      }
-      
       // Transform backend response to match frontend expectations
       const profile = response.data.profile || {};
       
-      const loginResult = {
+      return {
         success: true,
         data: {
           volunteer: {
@@ -294,22 +278,15 @@ class ApiService {
         },
         message: response.data.message || 'Login successful'
       };
-      
-      console.log('🔐 LOGIN SUCCESS - Returning result:', loginResult);
-      return loginResult;
     } catch (error: any) {
-      console.error('🔐 LOGIN FAILED - Error occurred:', error);
-      console.error('🔐 LOGIN FAILED - Error response:', error.response?.data);
-      console.error('🔐 LOGIN FAILED - Error status:', error.response?.status);
-      console.error('🔐 LOGIN FAILED - Full error object:', error);
-      
+      console.error('🔒 AUTHENTICATION: Direct API call failed', error);
       return {
         success: false,
         data: {
           volunteer: {} as Volunteer,
           token: ''
         },
-        message: error.response?.data?.message || 'Login failed - Backend not available'
+        message: error.response?.data?.message || 'Authentication failed - please check your credentials'
       };
     }
   }
