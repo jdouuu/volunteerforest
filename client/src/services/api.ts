@@ -169,7 +169,7 @@ class ApiService {
     constructor() {
     // Dynamically set base URL
     if ((import.meta as any).env.PROD) {
-      this.baseURL = '/';
+      this.baseURL = '';
     } else {
       this.baseURL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000';
     }
