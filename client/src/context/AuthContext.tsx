@@ -65,22 +65,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
+      console.log('🔑 AUTH CONTEXT - Starting login attempt for:', email);
       setLoading(true);
       setError(null); // Clear previous errors
+      
       const response = await apiService.login({ email, password });
+      console.log('🔑 AUTH CONTEXT - Received login response:', response);
       
       if (response.success) {
         const { volunteer, token } = response.data;
+        console.log('🔑 AUTH CONTEXT - Login successful, setting user:', volunteer);
         apiService.setAuthToken(token);
         setUser(volunteer);
         return { success: true };
       } else {
         const message = response.message || 'Login failed';
+        console.log('🔑 AUTH CONTEXT - Login failed with message:', message);
         setError(message);
         return { success: false, message };
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('🔑 AUTH CONTEXT - Login error:', error);
       const message = 'Login failed. Please try again.';
       setError(message);
       return { success: false, message };

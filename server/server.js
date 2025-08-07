@@ -57,6 +57,11 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Serve frontend static files in production
 // This block should be placed after all API routes
 if (process.env.NODE_ENV === 'production') {
