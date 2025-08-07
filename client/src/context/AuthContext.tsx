@@ -38,12 +38,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       try {
         const token = apiService.getAuthToken();
+        console.log('Checking existing auth token:', token ? 'exists' : 'none');
+        
         if (token) {
           const response = await apiService.verifyToken();
+          console.log('Token verification response:', response);
+          
           if (response.success) {
             setUser(response.data.user);
           } else {
             // Token is invalid, clear it
+            console.log('Token invalid, clearing auth');
             apiService.removeAuthToken();
           }
         }

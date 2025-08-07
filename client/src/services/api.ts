@@ -229,10 +229,13 @@ class ApiService {
   // Authentication - ALWAYS use real backend, never mock
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
+      console.log('Attempting login with backend API...');
       const response: AxiosResponse<any> = await this.api.post('/api/auth/login', {
         userId: credentials.email,
         password: credentials.password
       });
+      
+      console.log('Backend login response:', response.data);
       
       // Transform backend response to match frontend expectations
       const profile = response.data.profile || {};
@@ -274,13 +277,15 @@ class ApiService {
         message: response.data.message || 'Login successful'
       };
     } catch (error: any) {
+      console.error('Login error:', error);
+      console.error('Error response:', error.response?.data);
       return {
         success: false,
         data: {
           volunteer: {} as Volunteer,
           token: ''
         },
-        message: error.response?.data?.message || 'Login failed'
+        message: error.response?.data?.message || 'Login failed - Backend not available'
       };
     }
   }
