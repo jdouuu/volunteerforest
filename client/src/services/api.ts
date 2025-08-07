@@ -164,26 +164,10 @@ export interface EventCreateData {
 
 class ApiService {
   private api: AxiosInstance;
-  private baseURL: string;
 
-    constructor() {
-    // Dynamically set base URL
-    if ((import.meta as any).env.PROD) {
-      this.baseURL = '';
-    } else {
-      this.baseURL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000';
-    }
-    console.log('🌐 API Service: Using base URL:', this.baseURL);
-    console.log('🌐 Environment check:', {
-      isProduction: (import.meta as any).env?.PROD,
-      mode: (import.meta as any).env?.MODE,
-      viteUrl: (import.meta as any).env.VITE_VERCEL_URL,
-      apiUrl: (import.meta as any).env.VITE_API_URL,
-      hostname: window.location.hostname
-    });
-    
+  constructor() {
     this.api = axios.create({
-      baseURL: this.baseURL,
+      baseURL: '/', // Use relative path for all environments
       headers: {
         'Content-Type': 'application/json',
       },
@@ -222,7 +206,7 @@ class ApiService {
   // Check if backend is available
   private async isBackendAvailable(): Promise<boolean> {
     try {
-      const response = await this.api.get('/api/health');
+      const response = await this.api.get('/api/health'); // Correct health check endpoint
       return response.status === 200;
     } catch (error) {
       console.warn('Backend check failed:', error);
