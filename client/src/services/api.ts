@@ -106,12 +106,14 @@ export interface MatchingStats {
 export interface LoginCredentials {
   email: string;
   password: string;
+  role?: 'volunteer' | 'admin';
 }
 
 export interface RegisterData {
   name: string;
   email: string;
   password: string;
+  role?: 'volunteer' | 'admin';
 }
 
 export interface ProfileUpdateData {
@@ -166,8 +168,13 @@ class ApiService {
   private api: AxiosInstance;
 
   constructor() {
+    // Build base URL: always include '/api' prefix
+    const viteEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {};
+    const origin = (viteEnv.VITE_API_URL || '').toString().replace(/\/$/, '');
+    const baseURL = `${origin}/api`;
+
     this.api = axios.create({
-      baseURL: '/', // Use relative path for all environments
+      baseURL: baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -193,10 +200,10 @@ class ApiService {
       (response: any) => response,
       (error: any) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid
+          // Token expired or invalid – clear and send to root (SPA has no /login route)
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          window.location.href = '/';
         }
         return Promise.reject(error);
       }
@@ -206,7 +213,7 @@ class ApiService {
   // Check if backend is available
   private async isBackendAvailable(): Promise<boolean> {
     try {
-      const response = await this.api.get('/api/health'); // Correct health check endpoint
+      const response = await this.api.get('/health'); // baseURL handles '/api'
       return response.status === 200;
     } catch (error) {
       console.warn('Backend check failed:', error);
@@ -231,9 +238,10 @@ class ApiService {
     // DIRECT API CALL - NO getService() fallback - NO MOCK DATA EVER
     console.log('🔒 AUTHENTICATION: Using direct API call, no fallback');
     try {
-      const response: AxiosResponse<any> = await this.api.post('/api/auth/login', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/login', {
         userId: credentials.email,
-        password: credentials.password
+        password: credentials.password,
+        role: credentials.role || 'volunteer'
       });
       
       // Transform backend response to match frontend expectations
@@ -246,7 +254,7 @@ class ApiService {
             _id: response.data._id,
             name: profile.fullName || 'New Volunteer',
             email: response.data.userId, // Backend uses userId as email
-            role: 'volunteer' as const,
+            role: (response.data.role === 'admin' ? 'admin' : 'volunteer') as const,
             preferences: {
               maxDistance: 50,
               eventTypes: profile.preferences || [],
@@ -290,9 +298,10 @@ class ApiService {
 
   async register(data: RegisterData): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
-      const response: AxiosResponse<any> = await this.api.post('/api/auth/register', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/register', {
         userId: data.email,
-        password: data.password
+        password: data.password,
+        role: data.role || 'volunteer'
       });
       
       // Transform backend response to match frontend expectations
@@ -305,7 +314,7 @@ class ApiService {
             _id: response.data._id,
             name: profile.fullName || data.name || 'New Volunteer',
             email: response.data.userId, // Backend uses userId as email
-            role: 'volunteer' as const,
+            role: (response.data.role === 'admin' ? 'admin' : 'volunteer') as const,
             preferences: {
               maxDistance: 50,
               eventTypes: profile.preferences || [],
@@ -348,7 +357,7 @@ class ApiService {
 
   async verifyToken(): Promise<ApiResponse<{ user: Volunteer }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ user: Volunteer }>> = await this.api.get('/api/auth/me');
+      const response: AxiosResponse<ApiResponse<{ user: Volunteer }>> = await this.api.get('/auth/me');
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Token verification failed');
@@ -356,13 +365,13 @@ class ApiService {
   }
 
   // Volunteer Management
-  async getProfile(): Promise<ApiResponse<Volunteer>> {
-    const response: AxiosResponse<ApiResponse<Volunteer>> = await this.api.get('/volunteers/profile');
+  async getProfile(): Promise<any> {
+    const response: AxiosResponse<any> = await this.api.get('/users/profile');
     return response.data;
   }
 
-  async updateProfile(data: ProfileUpdateData): Promise<ApiResponse<Volunteer>> {
-    const response: AxiosResponse<ApiResponse<Volunteer>> = await this.api.put('/volunteers/profile', data);
+  async updateProfile(data: ProfileUpdateData): Promise<any> {
+    const response: AxiosResponse<any> = await this.api.put('/users/profile', data);
     return response.data;
   }
 

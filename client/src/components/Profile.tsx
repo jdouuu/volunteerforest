@@ -1,5 +1,7 @@
-import { useState, FC } from 'react';
+import { useEffect, useState, FC } from 'react';
 import { Volunteer } from '../services/api';
+import apiService from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import NotificationPreferencesComponent from './NotificationPreferences';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -40,6 +42,34 @@ const Profile: FC<ProfileProps> = ({ user }) => {
     preferences: '',
     availability: []
   });
+
+  // Prefill from backend profile on mount
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await apiService.getProfile();
+        // Server returns the UserProfile document
+        const p = res;
+        if (p && mounted) {
+          setProfileData(prev => ({
+            ...prev,
+            fullName: p.fullName || prev.fullName,
+            address1: p.address || '',
+            city: p.city || '',
+            state: p.state || '',
+            zip: p.zipcode || '',
+            skills: Array.isArray(p.skills) ? p.skills : [],
+            preferences: Array.isArray(p.preferences) ? p.preferences.join(', ') : '',
+            availability: Array.isArray(p.availability) ? p.availability : [],
+          }));
+        }
+      } catch (e) {
+        console.warn('Failed to load profile', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [customSkill, setCustomSkill] = useState('');
@@ -144,8 +174,8 @@ const Profile: FC<ProfileProps> = ({ user }) => {
     
     if (!profileData.zip.trim()) {
       newErrors.zip = 'Zip code is required';
-    } else if (profileData.zip.length < 5 || profileData.zip.length > 9) {
-      newErrors.zip = 'Zip code must be 5-9 characters';
+    } else if (!/^\d{5}(-?\d{4})?$/.test(profileData.zip.trim())) {
+      newErrors.zip = 'Zip must be 12345 or 12345-6789';
     }
     
     if (profileData.phone && !/^\d{3}-?\d{3}-?\d{4}$/.test(profileData.phone.replace(/\D/g, ''))) {
@@ -195,15 +225,58 @@ const Profile: FC<ProfileProps> = ({ user }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { updateUser } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
-    console.log('Profile update:', profileData);
-    alert('Profile updated successfully!');
+
+    try {
+      const payload = {
+        fullName: profileData.fullName,
+        address: [profileData.address1, profileData.address2].filter(Boolean).join(' '),
+        city: profileData.city,
+        state: profileData.state,
+        zipcode: profileData.zip,
+        skills: profileData.skills,
+        preferences: profileData.preferences
+          ? profileData.preferences.split(',').map(s => s.trim()).filter(Boolean)
+          : [],
+        availability: profileData.availability,
+      };
+
+      const res = await apiService.updateProfile(payload);
+
+      if (res && res.success !== false) {
+        // Update local auth user snapshot to keep UI consistent
+        updateUser({
+          name: payload.fullName,
+          skills: payload.skills,
+          preferences: {
+            ...(user?.preferences || { maxDistance: 50, eventTypes: [], maxHoursPerWeek: 40 }),
+            eventTypes: payload.preferences,
+          },
+          location: {
+            ...(user?.location || {}),
+            address: payload.address,
+            city: payload.city,
+            state: payload.state,
+            zipCode: payload.zipcode,
+          },
+          updatedAt: new Date().toISOString(),
+        });
+
+        alert('Profile updated successfully!');
+      } else {
+        alert(res?.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      console.error('Failed to update profile', err);
+      alert('Failed to update profile. Please try again.');
+    }
   };
 
   const addSkill = (skill: string) => {

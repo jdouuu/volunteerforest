@@ -11,23 +11,52 @@ const generateToken = (id) => {
 };
 
 const registerUser  = asyncHandler(async (req, res) => {
-  const { userId, password } = req.body;
+  const { userId, password, role = 'volunteer' } = req.body;
 
   if (!userId || !password) {
     res.status(400);
     throw new Error('Please enter all fields');
   }
 
-  const userExists = await UserCredentials.findOne({ userId });
+  const userExists = await UserCredentials.findOne({ userId, role });
   if (userExists) {
     res.status(400);
-    throw new Error('User  ID already registered');
+    throw new Error('User ID already registered for this role');
   }
 
-  const user = await UserCredentials.create({
-    userId,
-    password,
-  });
+  // Legacy user without role present
+  const legacy = await UserCredentials.findOne({ userId, role: { $exists: false } });
+  if (legacy && role === 'volunteer') {
+    legacy.password = password; // will be hashed by pre-save hook
+    legacy.role = 'volunteer';
+    await legacy.save();
+
+    let userProfile = await UserProfile.findOne({ userId: legacy._id });
+    if (!userProfile) {
+      userProfile = await UserProfile.create({
+        userId: legacy._id,
+        fullName: 'New Volunteer',
+        address: '',
+        city: '',
+        state: '',
+        zipcode: '',
+        skills: [],
+        preferences: [],
+        availability: [],
+      });
+    }
+
+    return res.status(201).json({
+      _id: legacy._id,
+      userId: legacy.userId,
+      profile: userProfile,
+      role: legacy.role,
+      token: generateToken(legacy._id),
+      message: 'User registered successfully. Please complete your profile.',
+    });
+  }
+
+  const user = await UserCredentials.create({ userId, password, role });
 
   if (user) {
     const userProfile = await UserProfile.create({
@@ -47,7 +76,8 @@ const registerUser  = asyncHandler(async (req, res) => {
       userId: user.userId,
       profile: userProfile,
       token: generateToken(user._id),
-      message: 'User  registered successfully. Please complete your profile.',
+      role: user.role,
+      message: 'User registered successfully. Please complete your profile.',
     });
   } else {
     res.status(400);
@@ -56,9 +86,18 @@ const registerUser  = asyncHandler(async (req, res) => {
 });
 
 const loginUser  = asyncHandler(async (req, res) => {
-  const { userId, password } = req.body;
+  const { userId, password, role = 'volunteer' } = req.body;
 
-  const user = await UserCredentials.findOne({ userId });
+  let user = await UserCredentials.findOne({ userId, role });
+  // Legacy support: if no role-based credential exists, try legacy record and migrate to volunteer
+  if (!user) {
+    const legacy = await UserCredentials.findOne({ userId, role: { $exists: false } });
+    if (legacy && role === 'volunteer') {
+      legacy.role = 'volunteer';
+      await legacy.save();
+      user = legacy;
+    }
+  }
 
   if (user && (await user.matchPassword(password))) {
     // Fetch the user profile to get complete information
@@ -67,6 +106,7 @@ const loginUser  = asyncHandler(async (req, res) => {
     res.json({
       _id: user._id,
       userId: user.userId,
+      role: user.role,
       profile: userProfile,
       token: generateToken(user._id),
       message: 'Logged in successfully',
@@ -83,6 +123,7 @@ const getMe = asyncHandler(async (req, res) => {
     res.json({
       _id: user._id,
       userId: user.userId,
+      role: user.role,
     });
   } else {
     res.status(404);

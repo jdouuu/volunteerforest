@@ -37,30 +37,45 @@ const getUserProfile = asyncHandler(async (req, res) => {
  * @param {Object} res - Express response object.
  */
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const { fullName, address, city, state, zipcode, skills, preferences, availability } = req.body;
+  const body = req.body || {};
 
   const userProfile = await UserProfile.findOne({ userId: req.user._id });
 
-  if (userProfile) {
-    userProfile.fullName = fullName || userProfile.fullName;
-    userProfile.address = address || userProfile.address;
-    userProfile.city = city || userProfile.city;
-    userProfile.state = state || userProfile.state;
-    userProfile.zipcode = zipcode || userProfile.zipcode;
-    userProfile.skills = skills || userProfile.skills;
-    userProfile.preferences = preferences || userProfile.preferences;
-    userProfile.availability = availability || userProfile.availability;
-
-    const updatedProfile = await userProfile.save();
-
-    res.json({
-      message: 'Profile updated successfully',
-      profile: updatedProfile,
-    });
-  } else {
+  if (!userProfile) {
     res.status(404);
     throw new Error('User  profile not found');
   }
+
+  // Support multiple client shapes and allow clearing values
+  const addressCombined = [body.address1, body.address2].filter(Boolean).join(' ').trim();
+  const next = {
+    fullName: body.fullName,
+    address: body.address ?? (addressCombined || undefined),
+    city: body.city,
+    state: body.state,
+    zipcode: body.zipcode ?? body.zip,
+    skills: Array.isArray(body.skills) ? body.skills : body.skills ? [body.skills].flat() : undefined,
+    preferences: Array.isArray(body.preferences)
+      ? body.preferences
+      : typeof body.preferences === 'string'
+        ? body.preferences.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined,
+    availability: Array.isArray(body.availability) ? body.availability : undefined,
+  };
+
+  // Only assign when property is present (including empty string to allow clearing)
+  Object.entries(next).forEach(([key, value]) => {
+    if (value !== undefined) {
+      userProfile[key] = value;
+    }
+  });
+
+  const updatedProfile = await userProfile.save();
+
+  res.json({
+    message: 'Profile updated successfully',
+    profile: updatedProfile,
+  });
 });
 
 module.exports = {
@@ -68,4 +83,3 @@ module.exports = {
   updateUserProfile,
   getAllUserProfiles
 };
-

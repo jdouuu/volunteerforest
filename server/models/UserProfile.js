@@ -105,7 +105,8 @@ const UserProfileSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(v) {
-        return !v || /^\d{5}(-\d{4})?$/.test(v);
+        // Accept 5 digits, 9 digits, or 5+4 with hyphen
+        return !v || /^\d{5}(-?\d{4})?$/.test(v);
       },
       message: 'Please enter a valid zip code'
     },

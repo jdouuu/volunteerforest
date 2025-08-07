@@ -1,10 +1,23 @@
-module.exports = {
+import forms from '@tailwindcss/forms';
+
+export default {
   content: [
-    "./src/**/*.{html,js,jsx,ts,tsx}",
-    "./public/index.html"
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#3a7d44',
+        secondary: '#5dbb63',
+        accent: '#254d32',
+      },
+      backdropBlur: {
+        xs: '2px',
+      }
+    },
   },
-  plugins: [],
+  plugins: [
+    forms,
+  ],
 }

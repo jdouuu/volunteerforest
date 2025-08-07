@@ -36,11 +36,16 @@ const UserCredentialsSchema = new mongoose.Schema({
   userId: {
     type: String,
     required: [true, 'User ID is required'],
-    unique: true,
     trim: true,
     minlength: [3, 'User ID must be at least 3 characters long'],
     // Basic email validation if userId is intended to be an email
     match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address for User ID']
+  },
+  role: {
+    type: String,
+    enum: ['volunteer', 'admin'],
+    default: 'volunteer',
+    required: true
   },
   password: {
     type: String,
@@ -55,6 +60,9 @@ const UserCredentialsSchema = new mongoose.Schema({
 }, {
   timestamps: true // Adds createdAt and updatedAt timestamps
 });
+
+// Ensure unique combination of (userId, role)
+UserCredentialsSchema.index({ userId: 1, role: 1 }, { unique: true });
 
 /**
  * @function pre-save hook

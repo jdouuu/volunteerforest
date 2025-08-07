@@ -55,11 +55,13 @@ const protect = async (req, res, next) => {
  */
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    // In a real application, req.user would have a 'role' property
-    // For now, we'll assume all authenticated users are 'volunteer' or 'admin' based on context
-    // This middleware would check if req.user.role is included in the 'roles' array
-    // Example: if (!roles.includes(req.user.role)) { return res.status(403).json({ message: 'Forbidden' }); }
-    next(); // Allow access for now, as roles are not defined
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
   };
 };
 

@@ -5,8 +5,8 @@ interface AuthContextType {
   user: Volunteer | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, password: string, role?: 'volunteer' | 'admin') => Promise<{ success: boolean; message?: string }>;
+  register: (name: string, email: string, password: string, role?: 'volunteer' | 'admin') => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUser: (userData: Partial<Volunteer>) => void;
   clearError: () => void;
@@ -63,11 +63,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+  const login = async (email: string, password: string, role: 'volunteer' | 'admin' = 'volunteer'): Promise<{ success: boolean; message?: string }> => {
     try {
       setLoading(true);
       setError(null); // Clear previous errors
-      const response = await apiService.login({ email, password });
+      const response = await apiService.login({ email, password, role });
       
       if (response.success) {
         const { volunteer, token } = response.data;
@@ -89,11 +89,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+  const register = async (name: string, email: string, password: string, role: 'volunteer' | 'admin' = 'volunteer'): Promise<{ success: boolean; message?: string }> => {
     try {
       setLoading(true);
       setError(null); // Clear previous errors
-      const response = await apiService.register({ name, email, password });
+      const response = await apiService.register({ name, email, password, role });
       
       if (response.success) {
         const { volunteer, token } = response.data;

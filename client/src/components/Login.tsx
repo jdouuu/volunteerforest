@@ -49,7 +49,7 @@ const Login: FC = () => {
     try {
       if (isRegistering) {
         // Registration
-        const result = await register(name, email, password);
+        const result = await register(name, email, password, role);
         if (result.success) {
           setShowSuccessMessage(true);
           setIsRegistering(false);
@@ -68,7 +68,7 @@ const Login: FC = () => {
         }
       } else {
         // Login
-        const result = await login(email, password);
+        const result = await login(email, password, role);
         if (!result.success) {
           setErrors({ general: result.message || 'Invalid email or password.' });
         }

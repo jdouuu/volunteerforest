@@ -74,7 +74,8 @@ app.get('/', (req, res) => {
 // Basic error handling middleware (can be expanded)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  const status = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+  res.status(status).json({ message: err.message || 'Server error' });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -88,5 +89,4 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });
 }
-
 
