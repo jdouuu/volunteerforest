@@ -1,5 +1,5 @@
 // API service for notifications
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'https://volunteerforest.vercel.app';
 
 export interface NotificationRequest {
   volunteerId: string;
