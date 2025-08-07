@@ -166,13 +166,19 @@ class ApiService {
   private api: AxiosInstance;
   private baseURL: string;
 
-  constructor() {
-    // Force production URL for deployed version
-    this.baseURL = 'https://volunteerforest.vercel.app';
+    constructor() {
+    // Dynamically set base URL
+    if ((import.meta as any).env.PROD) {
+      this.baseURL = `https://${(import.meta as any).env.VITE_VERCEL_URL}`;
+    } else {
+      this.baseURL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000';
+    }
     console.log('🌐 API Service: Using base URL:', this.baseURL);
     console.log('🌐 Environment check:', {
       isProduction: (import.meta as any).env?.PROD,
       mode: (import.meta as any).env?.MODE,
+      viteUrl: (import.meta as any).env.VITE_VERCEL_URL,
+      apiUrl: (import.meta as any).env.VITE_API_URL,
       hostname: window.location.hostname
     });
     
