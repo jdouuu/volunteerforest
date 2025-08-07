@@ -16,9 +16,7 @@ const app = express();
 
 // CORS middleware with specific configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://volunteerforest.vercel.app', 'https://www.volunteerforest.vercel.app']
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+  origin: true, // Allow all origins for now, will tighten later
   credentials: true,
   optionsSuccessStatus: 200
 };
