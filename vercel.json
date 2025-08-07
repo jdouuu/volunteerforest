@@ -7,10 +7,7 @@
     },
     {
       "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "options": {
-        "distDir": "dist"
-      }
+      "use": "@vercel/static-build"
     }
   ],
   "routes": [
@@ -19,11 +16,15 @@
       "dest": "server/server.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
       "handle": "filesystem"
     },
     {
-      "src": "/",
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg))$",
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
