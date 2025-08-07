@@ -2,7 +2,7 @@ import { useState, FC } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const Login: FC = () => {
-  const { login, register } = useAuth();
+  const { login, register, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -42,11 +42,15 @@ const Login: FC = () => {
       return;
     }
 
+    // Clear any previous auth errors
+    clearError();
+    setErrors({});
+
     try {
       if (isRegistering) {
         // Registration
-        const success = await register(name, email, password);
-        if (success) {
+        const result = await register(name, email, password);
+        if (result.success) {
           setShowSuccessMessage(true);
           setIsRegistering(false);
           setEmail('');
@@ -60,13 +64,13 @@ const Login: FC = () => {
             setShowSuccessMessage(false);
           }, 5000);
         } else {
-          setErrors({ general: 'Registration failed. Please try again.' });
+          setErrors({ general: result.message || 'Registration failed. Please try again.' });
         }
       } else {
         // Login
-        const success = await login(email, password);
-        if (!success) {
-          setErrors({ general: 'Invalid email or password.' });
+        const result = await login(email, password);
+        if (!result.success) {
+          setErrors({ general: result.message || 'Invalid email or password.' });
         }
       }
     } catch (error) {
@@ -91,11 +95,11 @@ const Login: FC = () => {
           </div>
         )}
         
-        {errors.general && (
+        {(errors.general || error) && (
           <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <div className="flex items-center">
               <i className="fas fa-exclamation-circle mr-2"></i>
-              <span>{errors.general}</span>
+              <span>{errors.general || error}</span>
             </div>
           </div>
         )}

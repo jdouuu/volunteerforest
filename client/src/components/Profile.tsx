@@ -1,10 +1,10 @@
 import { useState, FC } from 'react';
-import { User } from '../App';
+import { Volunteer } from '../services/api';
 import NotificationPreferencesComponent from './NotificationPreferences';
 import { useNotifications } from '../context/NotificationContext';
 
 interface ProfileProps {
-  user: User | null;
+  user: Volunteer | null;
 }
 
 interface ProfileData {

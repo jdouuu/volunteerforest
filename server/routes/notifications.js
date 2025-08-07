@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const notificationService = require('../services/notificationService');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 const { validateNotification, validateObjectId } = require('../middleware/validation');
 
 // Send event assignment notification
-router.post('/event-assignment', auth, validateNotification, async (req, res) => {
+router.post('/event-assignment', protect, validateNotification, async (req, res) => {
   try {
     const { volunteerId, eventId } = req.body;
 
@@ -39,7 +39,7 @@ router.post('/event-assignment', auth, validateNotification, async (req, res) =>
 });
 
 // Send event update notification
-router.post('/event-update', auth, validateNotification, async (req, res) => {
+router.post('/event-update', protect, validateNotification, async (req, res) => {
   try {
     const { eventId, updateMessage } = req.body;
 
@@ -84,7 +84,7 @@ router.post('/event-update', auth, validateNotification, async (req, res) => {
 });
 
 // Send event reminder notification
-router.post('/event-reminder', auth, validateNotification, async (req, res) => {
+router.post('/event-reminder', protect, validateNotification, async (req, res) => {
   try {
     const { eventId, reminderType = 'day_before' } = req.body;
 
@@ -138,7 +138,7 @@ router.post('/event-reminder', auth, validateNotification, async (req, res) => {
 });
 
 // Send welcome notification
-router.post('/welcome', auth, validateNotification, async (req, res) => {
+router.post('/welcome', protect, validateNotification, async (req, res) => {
   try {
     const { volunteerId } = req.body;
 
@@ -180,7 +180,7 @@ router.post('/welcome', auth, validateNotification, async (req, res) => {
 });
 
 // Get notification history for a volunteer
-router.get('/history/:volunteerId', auth, validateObjectId('volunteerId'), async (req, res) => {
+router.get('/history/:volunteerId', protect, validateObjectId('volunteerId'), async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const { limit = 20 } = req.query;
@@ -216,7 +216,7 @@ router.get('/history/:volunteerId', auth, validateObjectId('volunteerId'), async
 });
 
 // Test email configuration (admin only)
-router.get('/test-config', auth, async (req, res) => {
+router.get('/test-config', protect, async (req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -250,7 +250,7 @@ router.get('/test-config', auth, async (req, res) => {
 });
 
 // Get notification preferences for a volunteer
-router.get('/preferences/:volunteerId', auth, validateObjectId('volunteerId'), async (req, res) => {
+router.get('/preferences/:volunteerId', protect, validateObjectId('volunteerId'), async (req, res) => {
   try {
     const { volunteerId } = req.params;
 
@@ -286,7 +286,7 @@ router.get('/preferences/:volunteerId', auth, validateObjectId('volunteerId'), a
 });
 
 // Update notification preferences for a volunteer
-router.put('/preferences/:volunteerId', auth, validateObjectId('volunteerId'), async (req, res) => {
+router.put('/preferences/:volunteerId', protect, validateObjectId('volunteerId'), async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const preferences = req.body;

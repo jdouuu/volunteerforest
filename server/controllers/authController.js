@@ -30,14 +30,22 @@ const registerUser  = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    await UserProfile.create({
+    const userProfile = await UserProfile.create({
       userId: user._id,
       fullName: 'New Volunteer',
+      address: '',
+      city: '',
+      state: '',
+      zipcode: '',
+      skills: [],
+      preferences: [],
+      availability: [],
     });
 
     res.status(201).json({
       _id: user._id,
       userId: user.userId,
+      profile: userProfile,
       token: generateToken(user._id),
       message: 'User  registered successfully. Please complete your profile.',
     });
@@ -53,9 +61,13 @@ const loginUser  = asyncHandler(async (req, res) => {
   const user = await UserCredentials.findOne({ userId });
 
   if (user && (await user.matchPassword(password))) {
+    // Fetch the user profile to get complete information
+    const userProfile = await UserProfile.findOne({ userId: user._id });
+    
     res.json({
       _id: user._id,
       userId: user.userId,
+      profile: userProfile,
       token: generateToken(user._id),
       message: 'Logged in successfully',
     });

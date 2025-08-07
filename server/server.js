@@ -8,7 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const path = require('path'); // Import path module for serving static files
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file
 
 connectDB(); // Connect to MongoDB
 

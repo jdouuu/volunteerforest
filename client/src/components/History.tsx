@@ -1,9 +1,9 @@
 import { useState, FC } from 'react';
-import { User } from '../App';
+import { Volunteer } from '../services/api';
 import { Event } from './Events';
 
 interface HistoryProps {
-  user: User | null;
+  user: Volunteer | null;
 }
 
 interface VolunteerHistory {

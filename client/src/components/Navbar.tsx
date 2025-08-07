@@ -1,10 +1,10 @@
 import { FC } from 'react';
-import { User } from '../App';
+import { Volunteer } from '../services/api';
 import NotificationDropdown from './NotificationDropdown';
 import { useNotifications } from '../context/NotificationContext';
 
 interface NavbarProps {
-  user: User;
+  user: Volunteer;
   currentPage: string;
   onNavigate: (page: 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching') => void;
   onLogout: () => void;

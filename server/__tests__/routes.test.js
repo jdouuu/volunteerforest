@@ -1,9 +1,9 @@
 const request = require('supertest');
 const express = require('express');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 
 // Mock the middleware and models
-jest.mock('../middleware/auth');
+jest.mock('../middleware/authMiddleware');
 jest.mock('../models/Volunteer');
 jest.mock('../models/Event');
 jest.mock('../services/matchingService');
@@ -17,7 +17,7 @@ const app = express();
 app.use(express.json());
 
 // Import routes
-const authRoutes = require('../routes/auth');
+const authRoutes = require('../routes/authRoutes');
 const volunteerRoutes = require('../routes/volunteers');
 const eventRoutes = require('../routes/events');
 const matchingRoutes = require('../routes/matching');

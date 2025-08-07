@@ -4,10 +4,12 @@ import apiService, { Volunteer } from '../services/api';
 interface AuthContextType {
   user: Volunteer | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  error: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUser: (userData: Partial<Volunteer>) => void;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +29,9 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<Volunteer | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = () => setError(null);
 
   useEffect(() => {
     // Check if user is already logged in on app start
@@ -53,45 +58,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       setLoading(true);
+      setError(null); // Clear previous errors
       const response = await apiService.login({ email, password });
       
       if (response.success) {
         const { volunteer, token } = response.data;
         apiService.setAuthToken(token);
         setUser(volunteer);
-        return true;
+        return { success: true };
       } else {
-        console.error('Login failed:', response.message);
-        return false;
+        const message = response.message || 'Login failed';
+        setError(message);
+        return { success: false, message };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      const message = 'Login failed. Please try again.';
+      setError(message);
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       setLoading(true);
+      setError(null); // Clear previous errors
       const response = await apiService.register({ name, email, password });
       
       if (response.success) {
         const { volunteer, token } = response.data;
         apiService.setAuthToken(token);
         setUser(volunteer);
-        return true;
+        return { success: true };
       } else {
-        console.error('Registration failed:', response.message);
-        return false;
+        const message = response.message || 'Registration failed';
+        setError(message);
+        return { success: false, message };
       }
     } catch (error) {
       console.error('Registration error:', error);
-      return false;
+      const message = 'Registration failed. Please try again.';
+      setError(message);
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
@@ -111,10 +124,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     loading,
+    error,
     login,
     register,
     logout,
     updateUser,
+    clearError,
   };
 
   return (

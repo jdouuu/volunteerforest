@@ -1,9 +1,9 @@
 const request = require('supertest');
 const express = require('express');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 
 // Mock the middleware and models
-jest.mock('../middleware/auth');
+jest.mock('../middleware/authMiddleware');
 jest.mock('../models/Volunteer');
 jest.mock('../models/Event');
 

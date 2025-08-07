@@ -229,22 +229,117 @@ class ApiService {
   // Authentication - ALWAYS use real backend, never mock
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/api/auth/login', credentials);
-      return response.data;
+      const response: AxiosResponse<any> = await this.api.post('/api/auth/login', {
+        userId: credentials.email,
+        password: credentials.password
+      });
+      
+      // Transform backend response to match frontend expectations
+      const profile = response.data.profile || {};
+      
+      return {
+        success: true,
+        data: {
+          volunteer: {
+            _id: response.data._id,
+            name: profile.fullName || 'New Volunteer',
+            email: response.data.userId, // Backend uses userId as email
+            role: 'volunteer' as const,
+            preferences: {
+              maxDistance: 50,
+              eventTypes: profile.preferences || [],
+              maxHoursPerWeek: 40
+            },
+            availability: {
+              weekdays: { morning: false, afternoon: false, evening: false },
+              weekends: { morning: false, afternoon: false, evening: false }
+            },
+            skills: profile.skills || [],
+            location: {
+              address: profile.address || '',
+              city: profile.city || '',
+              state: profile.state || '',
+              zipCode: profile.zipcode || ''
+            },
+            completedEvents: [],
+            totalHours: 0,
+            averageRating: 0,
+            profileComplete: false,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          token: response.data.token
+        },
+        message: response.data.message || 'Login successful'
+      };
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      return {
+        success: false,
+        data: {
+          volunteer: {} as Volunteer,
+          token: ''
+        },
+        message: error.response?.data?.message || 'Login failed'
+      };
     }
   }
 
   async register(data: RegisterData): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ volunteer: Volunteer; token: string }>> = await this.api.post('/api/auth/register', {
+      const response: AxiosResponse<any> = await this.api.post('/api/auth/register', {
         userId: data.email,
         password: data.password
       });
-      return response.data;
+      
+      // Transform backend response to match frontend expectations
+      const profile = response.data.profile || {};
+      
+      return {
+        success: true,
+        data: {
+          volunteer: {
+            _id: response.data._id,
+            name: profile.fullName || data.name || 'New Volunteer',
+            email: response.data.userId, // Backend uses userId as email
+            role: 'volunteer' as const,
+            preferences: {
+              maxDistance: 50,
+              eventTypes: profile.preferences || [],
+              maxHoursPerWeek: 40
+            },
+            availability: {
+              weekdays: { morning: false, afternoon: false, evening: false },
+              weekends: { morning: false, afternoon: false, evening: false }
+            },
+            skills: profile.skills || [],
+            location: {
+              address: profile.address || '',
+              city: profile.city || '',
+              state: profile.state || '',
+              zipCode: profile.zipcode || ''
+            },
+            completedEvents: [],
+            totalHours: 0,
+            averageRating: 0,
+            profileComplete: false,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          token: response.data.token
+        },
+        message: response.data.message || 'Registration successful'
+      };
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Registration failed');
+      return {
+        success: false,
+        data: {
+          volunteer: {} as Volunteer,
+          token: ''
+        },
+        message: error.response?.data?.message || 'Registration failed'
+      };
     }
   }
 

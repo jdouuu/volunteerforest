@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { User } from '../App';
+import { Volunteer } from '../services/api';
 import { useNotifications } from '../context/NotificationContext';
 
 interface NotificationsProps {
-  user: User | null;
+  user: Volunteer | null;
 }
 
 const Notifications: FC<NotificationsProps> = ({ user }) => {

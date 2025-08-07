@@ -29,7 +29,8 @@ const NotificationTriggers: FC<NotificationTriggersProps> = ({
       console.log(`${action} result:`, result);
     } catch (error) {
       console.error(`${action} error:`, error);
-      setResults(prev => ({ ...prev, [action]: { error: error.message } }));
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      setResults(prev => ({ ...prev, [action]: { error: errorMessage } }));
     } finally {
       setLoading(prev => ({ ...prev, [action]: false }));
     }

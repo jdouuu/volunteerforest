@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Volunteer = require('../models/Volunteer');
 const Event = require('../models/Event');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 const { validateHistoryEntry, validateObjectId, validatePagination } = require('../middleware/validation');
 
 // Get volunteer participation history
-router.get('/:volunteerId', auth, validateObjectId('volunteerId'), validatePagination, async (req, res) => {
+router.get('/:volunteerId', protect, validateObjectId('volunteerId'), validatePagination, async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const { limit = 20, page = 1 } = req.query;
@@ -66,7 +66,7 @@ router.get('/:volunteerId', auth, validateObjectId('volunteerId'), validatePagin
 });
 
 // Add event to volunteer history
-router.post('/:volunteerId/events', auth, validateObjectId('volunteerId'), validateHistoryEntry, async (req, res) => {
+router.post('/:volunteerId/events', protect, validateObjectId('volunteerId'), validateHistoryEntry, async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const { eventId, hours, rating } = req.body;
@@ -153,7 +153,7 @@ router.post('/:volunteerId/events', auth, validateObjectId('volunteerId'), valid
 });
 
 // Update event entry in volunteer history
-router.put('/:volunteerId/events/:eventId', auth, validateObjectId('volunteerId'), validateObjectId('eventId'), async (req, res) => {
+router.put('/:volunteerId/events/:eventId', protect, validateObjectId('volunteerId'), validateObjectId('eventId'), async (req, res) => {
   try {
     const { volunteerId, eventId } = req.params;
     const { hours, rating } = req.body;
@@ -229,7 +229,7 @@ router.put('/:volunteerId/events/:eventId', auth, validateObjectId('volunteerId'
 });
 
 // Delete event from volunteer history
-router.delete('/:volunteerId/events/:eventId', auth, validateObjectId('volunteerId'), validateObjectId('eventId'), async (req, res) => {
+router.delete('/:volunteerId/events/:eventId', protect, validateObjectId('volunteerId'), validateObjectId('eventId'), async (req, res) => {
   try {
     const { volunteerId, eventId } = req.params;
 
@@ -294,7 +294,7 @@ router.delete('/:volunteerId/events/:eventId', auth, validateObjectId('volunteer
 });
 
 // Get volunteer statistics
-router.get('/:volunteerId/stats', auth, validateObjectId('volunteerId'), async (req, res) => {
+router.get('/:volunteerId/stats', protect, validateObjectId('volunteerId'), async (req, res) => {
   try {
     const { volunteerId } = req.params;
 

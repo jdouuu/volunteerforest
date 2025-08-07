@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const matchingService = require('../services/matchingService');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 const { validateMatchingScore, validateObjectId, validatePagination } = require('../middleware/validation');
 
 // Get matching events for a volunteer
-router.get('/events/:volunteerId', auth, validateObjectId('volunteerId'), validatePagination, async (req, res) => {
+router.get('/events/:volunteerId', protect, validateObjectId('volunteerId'), validatePagination, async (req, res) => {
   try {
     const { volunteerId } = req.params;
     const { limit = 10 } = req.query;
@@ -26,7 +26,7 @@ router.get('/events/:volunteerId', auth, validateObjectId('volunteerId'), valida
 });
 
 // Get matching volunteers for an event
-router.get('/volunteers/:eventId', auth, validateObjectId('eventId'), validatePagination, async (req, res) => {
+router.get('/volunteers/:eventId', protect, validateObjectId('eventId'), validatePagination, async (req, res) => {
   try {
     const { eventId } = req.params;
     const { limit = 20 } = req.query;
@@ -47,7 +47,7 @@ router.get('/volunteers/:eventId', auth, validateObjectId('eventId'), validatePa
 });
 
 // Get urgent matching alerts
-router.get('/alerts', auth, async (req, res) => {
+router.get('/alerts', protect, async (req, res) => {
   try {
     const alerts = await matchingService.getUrgentMatchingAlerts();
     
@@ -65,7 +65,7 @@ router.get('/alerts', auth, async (req, res) => {
 });
 
 // Get matching statistics
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', protect, async (req, res) => {
   try {
     const stats = await matchingService.getMatchingStats();
     
@@ -82,7 +82,7 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Calculate match score between volunteer and event
-router.post('/calculate-score', auth, validateMatchingScore, async (req, res) => {
+router.post('/calculate-score', protect, validateMatchingScore, async (req, res) => {
   try {
     const { volunteerId, eventId } = req.body;
     
