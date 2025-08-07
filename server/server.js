@@ -10,7 +10,12 @@ const path = require('path'); // Import path module for serving static files
 
 dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file
 
-connectDB(); // Connect to MongoDB
+try {
+  connectDB(); // Connect to MongoDB
+} catch (error) {
+  console.error("CRITICAL_ERROR: Failed to connect to MongoDB on startup.", error);
+  process.exit(1);
+}
 
 const app = express();
 
