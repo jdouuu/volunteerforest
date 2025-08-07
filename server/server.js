@@ -62,18 +62,9 @@ app.get('/api/health', (req, res) => {
 
 // Serve frontend static files in production
 // This block should be placed after all API routes
-if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-
-  app.get('*', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'))
-  );
-} else {
-  app.get('/', (req, res) => {
+app.get('/', (req, res) => {
     res.send('API is running...');
   });
-}
 
 // Basic error handling middleware (can be expanded)
 app.use((err, req, res, next) => {
