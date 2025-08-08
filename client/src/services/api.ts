@@ -388,7 +388,7 @@ class ApiService {
 
   // Event Management
   async getEvents(page: number = 1, limit: number = 10): Promise<ApiResponse<{ events: Event[]; total: number; page: number; totalPages: number }>> {
-    const response: AxiosResponse<any> = await this.api.get(`/events?page=${page}&limit=${limit}`);
+    const response: AxiosResponse<any> = await this.api.get(`/events/simple?page=${page}&limit=${limit}`);
     const data = response.data;
     if (Array.isArray(data)) {
       return { success: true, data: { events: data, total: data.length, page: 1, totalPages: 1 } };
