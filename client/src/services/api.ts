@@ -170,7 +170,13 @@ class ApiService {
   constructor() {
     // Build base URL: always include '/api' prefix
     const viteEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {};
-    const origin = (viteEnv.VITE_API_URL || '').toString().replace(/\/$/, '');
+    let origin = (viteEnv.VITE_API_URL || '').toString().replace(/\/$/, '');
+    // If set to localhost but deployed elsewhere, use relative API
+    try {
+      if (origin.includes('localhost') && typeof window !== 'undefined' && !window.location.host.includes('localhost')) {
+        origin = '';
+      }
+    } catch {}
     const baseURL = `${origin}/api`;
 
     this.api = axios.create({
@@ -382,8 +388,21 @@ class ApiService {
 
   // Event Management
   async getEvents(page: number = 1, limit: number = 10): Promise<ApiResponse<{ events: Event[]; total: number; page: number; totalPages: number }>> {
-    const response: AxiosResponse<ApiResponse<{ events: Event[]; total: number; page: number; totalPages: number }>> = await this.api.get(`/events?page=${page}&limit=${limit}`);
-    return response.data;
+    const response: AxiosResponse<any> = await this.api.get(`/events?page=${page}&limit=${limit}`);
+    const data = response.data;
+    if (Array.isArray(data)) {
+      return { success: true, data: { events: data, total: data.length, page: 1, totalPages: 1 } };
+    }
+    if (data && data.success && data.data) return data;
+    return {
+      success: true,
+      data: {
+        events: data?.events || data?.data?.events || [],
+        total: data?.total || data?.data?.total || 0,
+        page: data?.page || data?.data?.page || 1,
+        totalPages: data?.totalPages || data?.data?.totalPages || 1
+      }
+    };
   }
 
   async getEvent(id: string): Promise<ApiResponse<Event>> {

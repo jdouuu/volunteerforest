@@ -77,7 +77,7 @@ const Events: FC<EventsProps> = ({ user }) => {
               minute: '2-digit',
               hour12: false 
             }),
-            location: `${apiEvent.location.address}, ${apiEvent.location.city}, ${apiEvent.location.state}`,
+            location: `${apiEvent.location.address}${apiEvent.location.city ? `, ${apiEvent.location.city}` : ''}${apiEvent.location.state ? `, ${apiEvent.location.state}` : ''}`,
             maxVolunteers: apiEvent.maxVolunteers,
             currentVolunteers: apiEvent.currentVolunteers,
             category: apiEvent.eventType as any,
@@ -188,14 +188,72 @@ const Events: FC<EventsProps> = ({ user }) => {
     ));
   };
 
-  const handleCreateEvent = (eventData: Omit<Event, 'id'>) => {
-    const newEvent: Event = {
-      ...eventData,
-      id: Date.now().toString(),
-      currentVolunteers: 0
-    };
-    setEvents(prev => [...prev, newEvent]);
-    setShowCreateModal(false);
+  const handleCreateEvent = async (eventData: Omit<Event, 'id'>) => {
+    try {
+      // Map form data to API shape
+      const startISO = new Date(`${eventData.date}T${eventData.startTime}:00`).toISOString();
+      const endISO = new Date(`${eventData.date}T${eventData.endTime}:00`).toISOString();
+      const durationHrs = Math.max(1, Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / (1000 * 60 * 60)));
+
+      const payload = {
+        title: eventData.title,
+        description: eventData.description,
+        eventType: eventData.category,
+        requiredSkills: eventData.skills,
+        location: {
+          address: eventData.location,
+          city: '',
+          state: '',
+          zipCode: ''
+        },
+        startDate: startISO,
+        endDate: endISO,
+        duration: durationHrs,
+        maxVolunteers: eventData.maxVolunteers,
+        organizer: {
+          name: eventData.organizer || 'Organizer',
+          email: eventData.contactEmail || 'organizer@example.com',
+          phone: eventData.contactPhone || ''
+        },
+        requirements: eventData.requirements ? eventData.requirements.split(',').map(s => s.trim()).filter(Boolean) : [],
+        benefits: [],
+        difficulty: 'moderate',
+        priority: 'medium'
+      };
+
+      const res = await apiService.createEvent(payload as any);
+      if (res.success) {
+        // Refresh events list from API
+        const refreshed = await apiService.getEvents(currentPage, 12);
+        if (refreshed.success) {
+          const converted: Event[] = refreshed.data.events.map((apiEvent: ApiEvent) => ({
+            id: apiEvent._id,
+            title: apiEvent.title,
+            description: apiEvent.description,
+            date: new Date(apiEvent.startDate).toISOString().split('T')[0],
+            startTime: new Date(apiEvent.startDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            endTime: new Date(apiEvent.endDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            location: `${apiEvent.location.address}${apiEvent.location.city ? `, ${apiEvent.location.city}` : ''}${apiEvent.location.state ? `, ${apiEvent.location.state}` : ''}`,
+            maxVolunteers: apiEvent.maxVolunteers,
+            currentVolunteers: apiEvent.currentVolunteers,
+            category: apiEvent.eventType as any,
+            skills: apiEvent.requiredSkills,
+            status: apiEvent.status === 'active' ? 'ongoing' : (apiEvent.status as any),
+            organizer: apiEvent.organizer.name,
+            contactEmail: apiEvent.organizer.email,
+            contactPhone: apiEvent.organizer.phone,
+            requirements: (apiEvent.requirements || []).join(', '),
+            imageUrl: `https://placehold.co/400x200/4ade80/ffffff?text=${encodeURIComponent(apiEvent.title)}`
+          }));
+          setEvents(converted);
+        }
+        setShowCreateModal(false);
+      } else {
+        console.error('Failed to create event:', res.message);
+      }
+    } catch (e) {
+      console.error('Error creating event:', e);
+    }
   };
 
   const handleUpdateEvent = (eventData: Omit<Event, 'id'>) => {
