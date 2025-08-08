@@ -48,6 +48,44 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
 
   if (!user) return null;
 
+  // Compute profile completion
+  const computeProfileCompletion = () => {
+    if (!user) return 0;
+    const checks: boolean[] = [];
+    
+    // Check if name is set and not default
+    checks.push(!!user.name && user.name !== 'New Volunteer' && user.name.trim() !== '');
+    
+    // Check if skills are set
+    checks.push((user.skills || []).length > 0);
+    
+    // Check if location is complete
+    checks.push(!!(user.location?.city && user.location?.state && user.location?.zipCode));
+    
+    // Check if preferences are set
+    checks.push((user.preferences?.eventTypes || []).length > 0);
+    
+    // Check if availability is set (at least one time slot selected)
+    const hasAvailability = user.availability && (
+      Object.values(user.availability.weekdays || {}).some(Boolean) || 
+      Object.values(user.availability.weekends || {}).some(Boolean)
+    );
+    checks.push(!!hasAvailability);
+    
+    // Check if max distance preference is set (not default)
+    checks.push(!!(user.preferences?.maxDistance && user.preferences.maxDistance !== 50));
+    
+    // Check if max hours per week is set (not default)
+    checks.push(!!(user.preferences?.maxHoursPerWeek && user.preferences.maxHoursPerWeek !== 40));
+    
+    // Check if address is set
+    checks.push(!!(user.location?.address && user.location.address.trim() !== ''));
+    
+    const completed = checks.filter(Boolean).length;
+    return Math.round((completed / checks.length) * 100);
+  };
+  const profilePct = computeProfileCompletion();
+
   // Volunteer Dashboard Cards
   const volunteerCards = [
     // Stats/Welcome Card
@@ -62,7 +100,7 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
           </div>
           <div className="ml-3">
             <p className="text-sm text-green-700">
-              Your profile is 65% complete.{' '}
+              Your profile is {profilePct}% complete.{" "}
               <button 
                 onClick={() => onNavigate?.('profile')}
                 className="font-medium text-green-700 hover:text-green-600"
@@ -78,9 +116,9 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
           <p className="text-gray-600">Your volunteer score</p>
           <div className="flex items-center mt-1">
             <div className="w-32 bg-gray-200 rounded-full h-2">
-              <div className="bg-green-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+              <div className="bg-green-600 h-2 rounded-full" style={{ width: `${profilePct}%` }}></div>
             </div>
-            <span className="ml-2 text-sm text-gray-600">65/100</span>
+            <span className="ml-2 text-sm text-gray-600">{profilePct}/100</span>
           </div>
         </div>
         <button 
@@ -111,13 +149,13 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
           matchingEvents.slice(0, 2).map((matchingEvent, index) => (
             <div key={index} className="border-b border-gray-200 pb-4">
               <div className="flex justify-between">
-                <h3 className="text-base font-medium text-gray-900">{matchingEvent.event.title}</h3>
+                <h3 className="text-base font-medium text-gray-900">{(matchingEvent as any).event.eventName || (matchingEvent as any).event.title}</h3>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   {Math.round(matchingEvent.matchScore * 100)}% match
                 </span>
               </div>
               <p className="mt-1 text-sm text-gray-500">
-                {new Date(matchingEvent.event.startDate).toLocaleDateString()} · {matchingEvent.event.duration}h
+                {new Date((matchingEvent as any).event.eventDate || (matchingEvent as any).event.startDate).toLocaleDateString()}
               </p>
               <p className="mt-1 text-sm text-gray-500">{matchingEvent.event.location.city}</p>
               <button 
@@ -229,7 +267,7 @@ const Dashboard: FC<DashboardProps> = ({ user, onNavigate }) => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900">
-                  {alert.event.title} ({alert.availableSpots} spots available)
+                  {(alert as any).event.eventName || (alert as any).event.title} ({alert.availableSpots} spots available)
                 </p>
                 <p className="text-sm text-gray-500">
                   Skills needed: {alert.event.requiredSkills.join(', ')}

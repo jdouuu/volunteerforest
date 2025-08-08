@@ -152,6 +152,11 @@ router.route('/:id')
   .put(protect, authorizeRoles('admin'), updateEvent) // Admin only
   .delete(protect, authorizeRoles('admin'), deleteEvent); // Admin only
 
+// Event registration endpoints
+const { registerForEvent, unregisterFromEvent } = require('../controllers/eventController');
+router.post('/:id/register', protect, registerForEvent);
+router.post('/:id/unregister', protect, unregisterFromEvent);
+
 /**
  * @swagger
  * /api/events/match:

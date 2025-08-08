@@ -62,33 +62,36 @@ const Events: FC<EventsProps> = ({ user }) => {
           setTotalPages(response.data.totalPages);
           
           // Convert API events to local format
-          const convertedEvents: Event[] = response.data.events.map(apiEvent => ({
-            id: apiEvent._id,
-            title: apiEvent.title,
-            description: apiEvent.description,
-            date: new Date(apiEvent.startDate).toISOString().split('T')[0],
-            startTime: new Date(apiEvent.startDate).toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit',
-              hour12: false 
-            }),
-            endTime: new Date(apiEvent.endDate).toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit',
-              hour12: false 
-            }),
-            location: `${apiEvent.location.address}${apiEvent.location.city ? `, ${apiEvent.location.city}` : ''}${apiEvent.location.state ? `, ${apiEvent.location.state}` : ''}`,
-            maxVolunteers: apiEvent.maxVolunteers,
-            currentVolunteers: apiEvent.currentVolunteers,
-            category: apiEvent.eventType as any,
-            skills: apiEvent.requiredSkills,
-            status: apiEvent.status === 'active' ? 'ongoing' : apiEvent.status as any,
-            organizer: apiEvent.organizer.name,
-            contactEmail: apiEvent.organizer.email,
-            contactPhone: apiEvent.organizer.phone,
-            requirements: apiEvent.requirements.join(', '),
-            imageUrl: `https://placehold.co/400x200/4ade80/ffffff?text=${encodeURIComponent(apiEvent.title)}`
-          }));
+          const convertedEvents: Event[] = response.data.events.map((apiEvent: any) => {
+            const dateObj = new Date(apiEvent.eventDate);
+            return {
+              id: apiEvent._id,
+              title: apiEvent.eventName,
+              description: apiEvent.description,
+              date: dateObj.toISOString().split('T')[0],
+              startTime: dateObj.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }),
+              endTime: new Date(dateObj.getTime() + 3 * 60 * 60 * 1000).toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }),
+              location: `${apiEvent.location.address}, ${apiEvent.location.city}, ${apiEvent.location.state}`,
+              maxVolunteers: apiEvent.maxVolunteers || 10,
+              currentVolunteers: apiEvent.currentVolunteers || 0,
+              category: apiEvent.urgency === 'critical' || apiEvent.urgency === 'high' ? 'health' : 'community',
+              skills: apiEvent.requiredSkills || [],
+              status: apiEvent.status === 'active' ? 'ongoing' : (apiEvent.status as any) || 'upcoming',
+              organizer: apiEvent.organizer?.name || 'Organizer',
+              contactEmail: apiEvent.organizer?.email || 'organizer@example.com',
+              contactPhone: apiEvent.organizer?.phone || '',
+              requirements: (apiEvent.requiredSkills || []).join(', '),
+              imageUrl: `https://placehold.co/400x200/4ade80/ffffff?text=${encodeURIComponent(apiEvent.eventName)}`
+            };
+          });
           
           setEvents(convertedEvents);
         }
@@ -190,35 +193,26 @@ const Events: FC<EventsProps> = ({ user }) => {
 
   const handleCreateEvent = async (eventData: Omit<Event, 'id'>) => {
     try {
-      // Map form data to API shape
-      const startISO = new Date(`${eventData.date}T${eventData.startTime}:00`).toISOString();
-      const endISO = new Date(`${eventData.date}T${eventData.endTime}:00`).toISOString();
-      const durationHrs = Math.max(1, Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / (1000 * 60 * 60)));
-
+      const dateTimeISO = new Date(`${eventData.date}T${eventData.startTime}:00`).toISOString();
+      
       const payload = {
-        title: eventData.title,
+        eventName: eventData.title,
         description: eventData.description,
-        eventType: eventData.category,
-        requiredSkills: eventData.skills,
         location: {
-          address: eventData.location,
-          city: '',
-          state: '',
-          zipCode: ''
+          address: eventData.location.split(',')[0]?.trim() || eventData.location,
+          city: eventData.location.split(',')[1]?.trim() || 'Houston',
+          state: eventData.location.split(',')[2]?.trim() || 'TX',
+          zipcode: eventData.location.split(',')[3]?.trim() || '77001'
         },
-        startDate: startISO,
-        endDate: endISO,
-        duration: durationHrs,
+        requiredSkills: eventData.skills,
+        urgency: 'medium',
+        eventDate: dateTimeISO,
         maxVolunteers: eventData.maxVolunteers,
         organizer: {
           name: eventData.organizer || 'Organizer',
           email: eventData.contactEmail || 'organizer@example.com',
           phone: eventData.contactPhone || ''
-        },
-        requirements: eventData.requirements ? eventData.requirements.split(',').map(s => s.trim()).filter(Boolean) : [],
-        benefits: [],
-        difficulty: 'moderate',
-        priority: 'medium'
+        }
       };
 
       const res = await apiService.createEvent(payload as any);
@@ -226,49 +220,82 @@ const Events: FC<EventsProps> = ({ user }) => {
         // Refresh events list from API
         const refreshed = await apiService.getEvents(currentPage, 12);
         if (refreshed.success) {
-          const converted: Event[] = refreshed.data.events.map((apiEvent: ApiEvent) => ({
-            id: apiEvent._id,
-            title: apiEvent.title,
-            description: apiEvent.description,
-            date: new Date(apiEvent.startDate).toISOString().split('T')[0],
-            startTime: new Date(apiEvent.startDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-            endTime: new Date(apiEvent.endDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-            location: `${apiEvent.location.address}${apiEvent.location.city ? `, ${apiEvent.location.city}` : ''}${apiEvent.location.state ? `, ${apiEvent.location.state}` : ''}`,
-            maxVolunteers: apiEvent.maxVolunteers,
-            currentVolunteers: apiEvent.currentVolunteers,
-            category: apiEvent.eventType as any,
-            skills: apiEvent.requiredSkills,
-            status: apiEvent.status === 'active' ? 'ongoing' : (apiEvent.status as any),
-            organizer: apiEvent.organizer.name,
-            contactEmail: apiEvent.organizer.email,
-            contactPhone: apiEvent.organizer.phone,
-            requirements: (apiEvent.requirements || []).join(', '),
-            imageUrl: `https://placehold.co/400x200/4ade80/ffffff?text=${encodeURIComponent(apiEvent.title)}`
-          }));
+          const converted: Event[] = refreshed.data.events.map((apiEvent: any) => {
+            const dateObj = new Date(apiEvent.eventDate);
+            return {
+              id: apiEvent._id,
+              title: apiEvent.eventName,
+              description: apiEvent.description,
+              date: dateObj.toISOString().split('T')[0],
+              startTime: dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+              endTime: new Date(dateObj.getTime() + 3 * 60 * 60 * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+              location: `${apiEvent.location.address}, ${apiEvent.location.city}, ${apiEvent.location.state}`,
+              maxVolunteers: apiEvent.maxVolunteers || 10,
+              currentVolunteers: apiEvent.currentVolunteers || 0,
+              category: apiEvent.urgency === 'critical' || apiEvent.urgency === 'high' ? 'health' : 'community',
+              skills: apiEvent.requiredSkills || [],
+              status: apiEvent.status === 'active' ? 'ongoing' : (apiEvent.status as any) || 'upcoming',
+              organizer: apiEvent.organizer?.name || 'Organizer',
+              contactEmail: apiEvent.organizer?.email || 'organizer@example.com',
+              contactPhone: apiEvent.organizer?.phone || '',
+              requirements: (apiEvent.requiredSkills || []).join(', '),
+              imageUrl: `https://placehold.co/400x200/4ade80/ffffff?text=${encodeURIComponent(apiEvent.eventName)}`
+            };
+          });
           setEvents(converted);
         }
         setShowCreateModal(false);
       } else {
         console.error('Failed to create event:', res.message);
+        alert('Failed to create event: ' + (res.message || 'Unknown error'));
       }
     } catch (e) {
       console.error('Error creating event:', e);
+      alert('Error creating event: ' + (e instanceof Error ? e.message : 'Unknown error'));
     }
   };
 
-  const handleUpdateEvent = (eventData: Omit<Event, 'id'>) => {
-    if (editingEvent) {
-      setEvents(prev => prev.map(event => 
-        event.id === editingEvent.id 
-          ? { ...eventData, id: editingEvent.id, currentVolunteers: editingEvent.currentVolunteers }
-          : event
-      ));
+  const handleUpdateEvent = async (eventData: Omit<Event, 'id'>) => {
+    if (!editingEvent) return;
+    try {
+      const dateTimeISO = new Date(`${eventData.date}T${eventData.startTime}:00`).toISOString();
+      const payload = {
+        eventName: eventData.title,
+        description: eventData.description,
+        location: {
+          address: eventData.location.split(',')[0]?.trim() || eventData.location,
+          city: eventData.location.split(',')[1]?.trim() || 'Houston',
+          state: eventData.location.split(',')[2]?.trim() || 'TX',
+          zipcode: eventData.location.split(',')[3]?.trim() || '77001'
+        },
+        requiredSkills: eventData.skills,
+        urgency: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+        eventDate: dateTimeISO,
+        maxVolunteers: eventData.maxVolunteers,
+        organizer: {
+          name: eventData.organizer,
+          email: eventData.contactEmail,
+          phone: eventData.contactPhone
+        }
+      };
+      
+      await apiService.updateEvent(editingEvent.id, payload);
+      setEvents(prev => prev.map(ev => ev.id === editingEvent.id ? { ...eventData, id: editingEvent.id, currentVolunteers: ev.currentVolunteers } : ev));
       setEditingEvent(null);
+    } catch (e) {
+      console.error('Failed to update event:', e);
+      alert('Failed to update event: ' + (e instanceof Error ? e.message : 'Unknown error'));
     }
   };
 
-  const handleDeleteEvent = (eventId: string) => {
-    setEvents(prev => prev.filter(event => event.id !== eventId));
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      await apiService.deleteEvent(eventId);
+      setEvents(prev => prev.filter(ev => ev.id !== eventId));
+    } catch (e) {
+      console.error('Failed to delete event:', e);
+      alert('Failed to delete event: ' + (e instanceof Error ? e.message : 'Unknown error'));
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -461,21 +488,42 @@ const Events: FC<EventsProps> = ({ user }) => {
                     >
                       View Details
                     </button>
-                    {!isUserRegistered(event.id) ? (
-                      <button
-                        onClick={() => handleRegisterForEvent(event.id)}
-                        disabled={event.currentVolunteers >= event.maxVolunteers}
-                        className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      >
-                        {event.currentVolunteers >= event.maxVolunteers ? 'Full' : 'Register'}
-                      </button>
+                    {user.role === 'admin' ? (
+                      <div className="flex space-x-1 flex-1">
+                        <button
+                          onClick={() => setEditingEvent(event)}
+                          className="flex-1 px-2 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this event?')) {
+                              handleDeleteEvent(event.id);
+                            }
+                          }}
+                          className="flex-1 px-2 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     ) : (
-                      <button
-                        onClick={() => handleUnregisterFromEvent(event.id)}
-                        className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        Unregister
-                      </button>
+                      !isUserRegistered(event.id) ? (
+                        <button
+                          onClick={() => handleRegisterForEvent(event.id)}
+                          disabled={event.currentVolunteers >= event.maxVolunteers}
+                          className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          {event.currentVolunteers >= event.maxVolunteers ? 'Full' : 'Register'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnregisterFromEvent(event.id)}
+                          className="flex-1 px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Unregister
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -523,6 +571,15 @@ const Events: FC<EventsProps> = ({ user }) => {
           <EventForm
             onSubmit={handleCreateEvent}
             onCancel={() => setShowCreateModal(false)}
+          />
+        )}
+
+        {editingEvent && (
+          <EventForm
+            event={editingEvent}
+            onSubmit={handleUpdateEvent}
+            onCancel={() => setEditingEvent(null)}
+            isEditing={true}
           />
         )}
 
@@ -587,27 +644,29 @@ const Events: FC<EventsProps> = ({ user }) => {
                   >
                     Close
                   </button>
-                  {!isUserRegistered(selectedEvent.id) ? (
-                    <button
-                      onClick={() => {
-                        handleRegisterForEvent(selectedEvent.id);
-                        setShowEventModal(false);
-                      }}
-                      disabled={selectedEvent.currentVolunteers >= selectedEvent.maxVolunteers}
-                      className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {selectedEvent.currentVolunteers >= selectedEvent.maxVolunteers ? 'Full' : 'Register'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        handleUnregisterFromEvent(selectedEvent.id);
-                        setShowEventModal(false);
-                      }}
-                      className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
-                      Unregister
-                    </button>
+                  {user.role !== 'admin' && (
+                    !isUserRegistered(selectedEvent.id) ? (
+                      <button
+                        onClick={() => {
+                          handleRegisterForEvent(selectedEvent.id);
+                          setShowEventModal(false);
+                        }}
+                        disabled={selectedEvent.currentVolunteers >= selectedEvent.maxVolunteers}
+                        className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {selectedEvent.currentVolunteers >= selectedEvent.maxVolunteers ? 'Full' : 'Register'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          handleUnregisterFromEvent(selectedEvent.id);
+                          setShowEventModal(false);
+                        }}
+                        className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        Unregister
+                      </button>
+                    )
                   )}
                 </div>
               </div>

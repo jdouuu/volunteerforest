@@ -8,6 +8,7 @@ import Events from './components/Events';
 import History from './components/History';
 import VolunteerMatchingForm from './components/VolunteerMatchingForm';
 import Notifications from './components/Notifications';
+import Reports from './components/Reports';
 import NotificationToast from './components/NotificationToast';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -16,7 +17,7 @@ const LoginWithCallback = Login as React.FC<{ onLoginSuccess?: () => void }>;
 
 
 const AppContent = () => {
-  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'dashboard' | 'admin' | 'profile' | 'events' | 'history' | 'notifications' | 'matching' | 'reports'>('login');
   const { user, loading, logout } = useAuth();
   const { notifications } = useNotifications();
 
@@ -58,6 +59,8 @@ const AppContent = () => {
         return <Notifications user={user} />;
       case 'matching':
         return <VolunteerMatchingForm />;
+      case 'reports':
+        return user.role === 'admin' ? <Reports /> : <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
       default:
         return <Dashboard user={user} onNavigate={(page) => setCurrentPage(page)} />;
     }

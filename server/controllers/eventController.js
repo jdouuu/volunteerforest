@@ -12,7 +12,7 @@ const asyncHandler = require('express-async-handler');
  * @param {Object} res - Express response object.
  */
 const createEvent = asyncHandler(async (req, res) => {
-  const { eventName, description, location, requiredSkills, urgency, eventDate } = req.body;
+  const { eventName, description, location, requiredSkills, urgency, eventDate, maxVolunteers, organizer } = req.body;
 
   // Basic validation
   if (!eventName || !description || !location || !urgency || !eventDate) {
@@ -20,13 +20,20 @@ const createEvent = asyncHandler(async (req, res) => {
     throw new Error('Please fill all required event fields');
   }
 
+  if (!organizer || !organizer.name || !organizer.email) {
+    res.status(400);
+    throw new Error('Organizer information (name and email) is required');
+  }
+
   const event = await EventDetails.create({
     eventName,
     description,
     location,
-    requiredSkills,
+    requiredSkills: requiredSkills || [],
     urgency,
     eventDate,
+    maxVolunteers: maxVolunteers || 10,
+    organizer,
     createdBy: req.user._id, // Link event to the creating user (admin)
   });
 
@@ -292,6 +299,44 @@ const getEventHistory = asyncHandler(async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/events/:id/register
+ * @description Register current authenticated user for an event (increments currentVolunteers)
+ * @access Private
+ */
+const registerForEvent = asyncHandler(async (req, res) => {
+  const event = await EventDetails.findById(req.params.id);
+  if (!event) {
+    res.status(404);
+    throw new Error('Event not found');
+  }
+  if (event.isEventFull()) {
+    res.status(400);
+    throw new Error('Event is full');
+  }
+  event.currentVolunteers += 1;
+  await event.save();
+  res.json({ message: 'Registered successfully', event });
+});
+
+/**
+ * @route POST /api/events/:id/unregister
+ * @description Unregister current authenticated user from an event (decrements currentVolunteers)
+ * @access Private
+ */
+const unregisterFromEvent = asyncHandler(async (req, res) => {
+  const event = await EventDetails.findById(req.params.id);
+  if (!event) {
+    res.status(404);
+    throw new Error('Event not found');
+  }
+  if (event.currentVolunteers > 0) {
+    event.currentVolunteers -= 1;
+    await event.save();
+  }
+  res.json({ message: 'Unregistered successfully', event });
+});
+
 module.exports = {
   createEvent,
   getEvents,
@@ -302,4 +347,6 @@ module.exports = {
   recordVolunteerHistory,
   getUserHistory,
   getEventHistory,
+  registerForEvent,
+  unregisterFromEvent,
 };

@@ -51,6 +51,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventsV2Routes);
 app.use('/api/history', eventRoutes); // History routes are also part of eventRoutes for now
+app.use('/api/reports', require('./routes/reportRoutes')); // Admin reporting routes
 
 // Debug route for Vercel deployment
 app.get('/api/debug', (req, res) => {

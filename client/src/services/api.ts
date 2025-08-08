@@ -46,34 +46,25 @@ export interface Volunteer {
 
 export interface Event {
   _id: string;
-  title: string;
+  eventName: string;
   description: string;
-  eventType: string;
-  requiredSkills: string[];
   location: {
     address: string;
     city: string;
     state: string;
-    zipCode: string;
-    coordinates?: { lat: number; lng: number };
+    zipcode: string;
   };
-  startDate: string;
-  endDate: string;
-  duration: number;
+  requiredSkills: string[];
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  eventDate: string; // single datetime
   maxVolunteers: number;
   currentVolunteers: number;
   status: 'upcoming' | 'active' | 'completed' | 'cancelled';
   organizer: {
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
   };
-  requirements: string[];
-  benefits: string[];
-  difficulty: 'easy' | 'moderate' | 'challenging';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  averageRating: number;
-  totalRatings: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -138,30 +129,23 @@ export interface ProfileUpdateData {
 }
 
 export interface EventCreateData {
-  title: string;
+  eventName: string;
   description: string;
-  eventType: string;
-  requiredSkills: string[];
   location: {
     address: string;
     city: string;
     state: string;
-    zipCode: string;
-    coordinates?: { lat: number; lng: number };
+    zipcode: string;
   };
-  startDate: string;
-  endDate: string;
-  duration: number;
-  maxVolunteers: number;
+  requiredSkills: string[];
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  eventDate: string; // ISO datetime
+  maxVolunteers?: number;
   organizer: {
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
   };
-  requirements: string[];
-  benefits: string[];
-  difficulty: 'easy' | 'moderate' | 'challenging';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
 }
 
 class ApiService {
@@ -388,21 +372,12 @@ class ApiService {
 
   // Event Management
   async getEvents(page: number = 1, limit: number = 10): Promise<ApiResponse<{ events: Event[]; total: number; page: number; totalPages: number }>> {
-  const response: AxiosResponse<any> = await this.api.get(`/events?page=${page}&limit=${limit}`);
+    const response: AxiosResponse<any> = await this.api.get(`/events?page=${page}&limit=${limit}`);
     const data = response.data;
     if (Array.isArray(data)) {
       return { success: true, data: { events: data, total: data.length, page: 1, totalPages: 1 } };
     }
-    if (data && data.success && data.data) return data;
-    return {
-      success: true,
-      data: {
-        events: data?.events || data?.data?.events || [],
-        total: data?.total || data?.data?.total || 0,
-        page: data?.page || data?.data?.page || 1,
-        totalPages: data?.totalPages || data?.data?.totalPages || 1
-      }
-    };
+    return { success: true, data: { events: [], total: 0, page: 1, totalPages: 1 } };
   }
 
   async getEvent(id: string): Promise<ApiResponse<Event>> {
@@ -411,8 +386,11 @@ class ApiService {
   }
 
   async createEvent(data: EventCreateData): Promise<ApiResponse<Event>> {
-    const response: AxiosResponse<ApiResponse<Event>> = await this.api.post('/events', data);
-    return response.data;
+    const response: AxiosResponse<any> = await this.api.post('/events', data);
+    if (response.data && response.data.event) {
+      return { success: true, data: response.data.event };
+    }
+    return { success: false, data: {} as any, message: 'Failed to create event' };
   }
 
   async updateEvent(id: string, data: Partial<EventCreateData>): Promise<ApiResponse<Event>> {
@@ -426,8 +404,12 @@ class ApiService {
   }
 
   async registerForEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
-    const response: AxiosResponse<ApiResponse<{ message: string }>> = await this.api.post(`/events/${eventId}/register`);
-    return response.data;
+    const response: AxiosResponse<any> = await this.api.post(`/events/${eventId}/register`);
+    return { success: true, data: { message: response.data.message || 'Registered' } };
+  }
+  async unregisterFromEvent(eventId: string): Promise<ApiResponse<{ message: string }>> {
+    const response: AxiosResponse<any> = await this.api.post(`/events/${eventId}/unregister`);
+    return { success: true, data: { message: response.data.message || 'Unregistered' } };
   }
 
   // Matching
@@ -466,6 +448,28 @@ class ApiService {
   async calculateMatchScore(volunteerId: string, eventId: string): Promise<ApiResponse<{ matchScore: number; distance: number }>> {
     const response: AxiosResponse<ApiResponse<{ matchScore: number; distance: number }>> = await this.api.post('/matching/calculate-score', { volunteerId, eventId });
     return response.data;
+  }
+
+  // Report methods
+  async getVolunteerReport(params?: Record<string, any>): Promise<ApiResponse<any>> {
+    const queryParams = params ? new URLSearchParams(params).toString() : '';
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get(`/reports/volunteers${queryParams ? `?${queryParams}` : ''}`);
+    return response.data;
+  }
+
+  async getEventReport(params?: Record<string, any>): Promise<ApiResponse<any>> {
+    const queryParams = params ? new URLSearchParams(params).toString() : '';
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get(`/reports/events${queryParams ? `?${queryParams}` : ''}`);
+    return response.data;
+  }
+
+  async getSummaryReport(): Promise<ApiResponse<any>> {
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get('/reports/summary');
+    return response.data;
+  }
+
+  getBaseURL(): string {
+    return '/api';
   }
 
   // Utility methods

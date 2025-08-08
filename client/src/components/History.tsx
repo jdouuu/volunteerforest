@@ -24,9 +24,11 @@ const History: FC<HistoryProps> = ({ user }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'hours' | 'rating'>('date');
+  const [editingEntry, setEditingEntry] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<VolunteerHistory[] | null>(null);
 
   // Mock volunteer history data
-  const volunteerHistory: VolunteerHistory[] = [
+  const volunteerHistorySeed: VolunteerHistory[] = [
     {
       eventId: '1',
       event: {
@@ -141,6 +143,7 @@ const History: FC<HistoryProps> = ({ user }) => {
       certificateEarned: false
     }
   ];
+  const volunteerHistory: VolunteerHistory[] = historyData || volunteerHistorySeed;
 
   const filteredHistory = volunteerHistory.filter(item => {
     if (filterStatus !== 'all' && item.participationStatus !== filterStatus) return false;
@@ -202,6 +205,42 @@ const History: FC<HistoryProps> = ({ user }) => {
     );
   };
 
+  const handleUpdateRating = (eventId: string, rating: number) => {
+    setHistoryData(prev => {
+      const base = prev || volunteerHistory;
+      return base.map(item => item.eventId === eventId ? { ...item, rating } : item);
+    });
+  };
+
+  const handleUpdateFeedback = (eventId: string, feedback: string) => {
+    setHistoryData(prev => {
+      const base = prev || volunteerHistory;
+      return base.map(item => item.eventId === eventId ? { ...item, feedback } : item);
+    });
+  };
+
+  const exportCSV = () => {
+    const rows = ['Event,Category,Status,Date,Hours,Rating,Certificate'];
+    sortedHistory.forEach(item => {
+      rows.push([
+        '"' + item.event.title.replace(/"/g,'""') + '"',
+        item.event.category,
+        item.participationStatus,
+        item.event.date,
+        item.hoursVolunteered || 0,
+        item.rating || '',
+        item.certificateEarned ? 'Yes' : 'No'
+      ].join(','));
+    });
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'volunteer-history.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -209,6 +248,9 @@ const History: FC<HistoryProps> = ({ user }) => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Volunteer History</h1>
           <p className="mt-2 text-gray-600">Track your volunteer journey and achievements</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button onClick={exportCSV} className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700">Export CSV</button>
+          </div>
         </div>
 
         {/* Stats Overview */}
@@ -311,9 +353,8 @@ const History: FC<HistoryProps> = ({ user }) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rating
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Certificate
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificate</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feedback</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -358,13 +399,45 @@ const History: FC<HistoryProps> = ({ user }) => {
                       {item.hoursVolunteered || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {item.rating ? renderStars(item.rating) : <span className="text-gray-400">-</span>}
+                      {editingEntry === item.eventId ? (
+                        <div className="flex items-center space-x-1">
+                          {[1,2,3,4,5].map(r => (
+                            <button
+                              key={r}
+                              onClick={() => handleUpdateRating(item.eventId, r)}
+                              className={`text-sm ${r <= (item.rating || 0) ? 'text-yellow-400' : 'text-gray-300'} focus:outline-none`}
+                            >
+                              <i className="fas fa-star" />
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        item.rating ? renderStars(item.rating) : <button onClick={() => setEditingEntry(item.eventId)} className="text-xs text-green-600 underline">Rate</button>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.certificateEarned ? (
                         <i className="fas fa-certificate text-yellow-500"></i>
                       ) : (
                         <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[160px]">
+                      {editingEntry === item.eventId ? (
+                        <div className="flex flex-col space-y-2">
+                          <textarea
+                            className="border border-gray-300 rounded p-1 text-xs"
+                            placeholder="Feedback..."
+                            value={item.feedback || ''}
+                            onChange={(e)=>handleUpdateFeedback(item.eventId,e.target.value)}
+                          />
+                          <div className="flex space-x-2">
+                            <button onClick={()=>setEditingEntry(null)} className="px-2 py-1 bg-green-600 text-white rounded text-xs">Done</button>
+                            <button onClick={()=>{handleUpdateFeedback(item.eventId,'');setEditingEntry(null);}} className="px-2 py-1 bg-gray-300 text-gray-800 rounded text-xs">Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        item.feedback ? <span className="text-xs text-gray-600 line-clamp-2 inline-block">{item.feedback}</span> : <button onClick={()=>setEditingEntry(item.eventId)} className="text-xs text-green-600 underline">Add Feedback</button>
                       )}
                     </td>
                   </tr>
