@@ -168,18 +168,8 @@ class ApiService {
   private api: AxiosInstance;
 
   constructor() {
-    // Build base URL: always include '/api' prefix
-    const viteEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {};
-    let origin = (viteEnv.VITE_API_URL || '').toString().replace(/\/$/, '');
-    // Prefer relative API in non-local environments regardless of VITE_API_URL
-    try {
-      if (typeof window !== 'undefined') {
-        const host = window.location.hostname;
-        const isLocal = host === 'localhost' || host === '127.0.0.1';
-        if (!isLocal) origin = '';
-      }
-    } catch {}
-    const baseURL = `${origin}/api`;
+    // Always use same-origin API with '/api' prefix; dev uses Vite proxy
+    const baseURL = `/api`;
 
     this.api = axios.create({
       baseURL: baseURL,

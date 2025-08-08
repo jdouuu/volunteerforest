@@ -1,14 +1,5 @@
 // API service for notifications
-(() => {})();
-let __origin = ((import.meta as any).env?.VITE_API_URL || '').toString().replace(/\/$/, '');
-try {
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    const isLocal = host === 'localhost' || host === '127.0.0.1';
-    if (!isLocal) __origin = '';
-  }
-} catch {}
-const API_BASE_URL = `${__origin}/api`;
+const API_BASE_URL = `/api`;
 
 export interface NotificationRequest {
   volunteerId: string;
