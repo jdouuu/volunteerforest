@@ -238,7 +238,7 @@ class ApiService {
     // DIRECT API CALL - NO getService() fallback - NO MOCK DATA EVER
     console.log('🔒 AUTHENTICATION: Using direct API call, no fallback');
     try {
-      const response: AxiosResponse<any> = await this.api.post('/auth/mongodb-login.js', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/existing-login.js', {
         userId: credentials.email,
         password: credentials.password,
         role: credentials.role || 'volunteer'
