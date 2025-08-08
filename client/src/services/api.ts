@@ -298,7 +298,7 @@ class ApiService {
 
   async register(data: RegisterData): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
-      const response: AxiosResponse<any> = await this.api.post('/auth/register', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/simple-register', {
         userId: data.email,
         password: data.password,
         role: data.role || 'volunteer'
