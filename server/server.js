@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 // Use the Event model aligned routes for frontend expectations
 const eventsV2Routes = require('./routes/eventsV2');
+const eventRoutes = require('./routes/eventRoutes');
 const path = require('path'); // Import path module for serving static files
 
 dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file (envs come from Vercel)
