@@ -7,10 +7,11 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 // Use the Event model aligned routes for frontend expectations
 const eventsV2Routes = require('./routes/eventsV2');
-const eventRoutes = require('./routes/eventRoutes');
+const eventRoutes = require('./routes/eventRoutes'); // needed for history sub-routes
 const path = require('path'); // Import path module for serving static files
 
-dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file (envs come from Vercel)
+// Let dotenv load from default locations; on Vercel real env vars are injected, local .env is auto-detected
+dotenv.config();
 
 // Try to establish DB connection, but do not crash the server in serverless
 (async () => {
@@ -75,59 +76,61 @@ app.get('/', (req, res) => {
     res.send('API is running...');
   });
 
-// Seed minimal events in empty DB for demo environments
-(async () => {
-  try {
-    const Event = require('./models/Event');
-    const count = await Event.countDocuments();
-    if (count === 0) {
-      const now = new Date();
-      const inTwoDays = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
-      const inFiveDays = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
-      await Event.insertMany([
-        {
-          title: 'Community Garden Planting',
-          description: 'Help plant vegetables in the community garden',
-          eventType: 'environmental',
-          requiredSkills: ['gardening'],
-          location: { address: '456 Garden St', city: 'New York', state: 'NY', zipCode: '10002' },
-          startDate: inTwoDays,
-          endDate: new Date(inTwoDays.getTime() + 3 * 60 * 60 * 1000),
-          duration: 3,
-          maxVolunteers: 15,
-          currentVolunteers: 8,
-          status: 'upcoming',
-          organizer: { name: 'Jane Smith', email: 'jane@example.com', phone: '555-1234' },
-          requirements: ['Bring gardening gloves', 'Wear comfortable clothes'],
-          benefits: ['Learn gardening skills', 'Meet community members'],
-          difficulty: 'easy',
-          priority: 'medium'
-        },
-        {
-          title: 'Food Bank Distribution',
-          description: 'Help distribute food to families in need',
-          eventType: 'community',
-          requiredSkills: ['cooking', 'customer_service'],
-          location: { address: '789 Food St', city: 'New York', state: 'NY', zipCode: '10003' },
-          startDate: inFiveDays,
-          endDate: new Date(inFiveDays.getTime() + 6 * 60 * 60 * 1000),
-          duration: 6,
-          maxVolunteers: 20,
-          currentVolunteers: 12,
-          status: 'upcoming',
-          organizer: { name: 'Bob Johnson', email: 'bob@example.com', phone: '555-5678' },
-          requirements: ['Food safety training', 'Comfortable standing for long periods'],
-          benefits: ['Help families in need', 'Gain food service experience'],
-          difficulty: 'moderate',
-          priority: 'high'
-        }
-      ]);
-      console.log('Seeded default events');
+// Seed minimal events in empty DB for demo environments (opt-in via SEED_EVENTS=true)
+if (process.env.SEED_EVENTS === 'true') {
+  (async () => {
+    try {
+      const Event = require('./models/Event');
+      const count = await Event.countDocuments();
+      if (count === 0) {
+        const now = new Date();
+        const inTwoDays = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+        const inFiveDays = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+        await Event.insertMany([
+          {
+            title: 'Community Garden Planting',
+            description: 'Help plant vegetables in the community garden',
+            eventType: 'environmental',
+            requiredSkills: ['gardening'],
+            location: { address: '456 Garden St', city: 'New York', state: 'NY', zipCode: '10002' },
+            startDate: inTwoDays,
+            endDate: new Date(inTwoDays.getTime() + 3 * 60 * 60 * 1000),
+            duration: 3,
+            maxVolunteers: 15,
+            currentVolunteers: 8,
+            status: 'upcoming',
+            organizer: { name: 'Jane Smith', email: 'jane@example.com', phone: '555-1234' },
+            requirements: ['Bring gardening gloves', 'Wear comfortable clothes'],
+            benefits: ['Learn gardening skills', 'Meet community members'],
+            difficulty: 'easy',
+            priority: 'medium'
+          },
+          {
+            title: 'Food Bank Distribution',
+            description: 'Help distribute food to families in need',
+            eventType: 'community',
+            requiredSkills: ['cooking', 'customer_service'],
+            location: { address: '789 Food St', city: 'New York', state: 'NY', zipCode: '10003' },
+            startDate: inFiveDays,
+            endDate: new Date(inFiveDays.getTime() + 6 * 60 * 60 * 1000),
+            duration: 6,
+            maxVolunteers: 20,
+            currentVolunteers: 12,
+            status: 'upcoming',
+            organizer: { name: 'Bob Johnson', email: 'bob@example.com', phone: '555-5678' },
+            requirements: ['Food safety training', 'Comfortable standing for long periods'],
+            benefits: ['Help families in need', 'Gain food service experience'],
+            difficulty: 'moderate',
+            priority: 'high'
+          }
+        ]);
+        console.log('Seeded default events');
+      }
+    } catch (seedErr) {
+      console.warn('Event seeding skipped:', seedErr.message);
     }
-  } catch (seedErr) {
-    console.warn('Event seeding skipped:', seedErr.message);
-  }
-})();
+  })();
+}
 
 // Basic error handling middleware (can be expanded)
 app.use((err, req, res, next) => {

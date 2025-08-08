@@ -9,17 +9,10 @@ require('dotenv').config(); // Load environment variables
  */
 const connectDB = async () => {
   try {
-    // Reuse existing active connection (important for serverless/function cold starts)
-    if (mongoose.connection && mongoose.connection.readyState === 1) {
-      return mongoose.connection;
-    }
     if (!process.env.MONGO_URI) {
       throw new Error('MONGO_URI is not configured');
     }
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      // Shorter server selection timeout to fit within serverless execution window
-      serverSelectionTimeoutMS: 5000,
-    });
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
     // One-time migration: ensure compound index and migrate legacy documents
