@@ -238,7 +238,7 @@ class ApiService {
     // DIRECT API CALL - NO getService() fallback - NO MOCK DATA EVER
     console.log('🔒 AUTHENTICATION: Using direct API call, no fallback');
     try {
-      const response: AxiosResponse<any> = await this.api.post('/auth/simple-login.js', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/mongodb-login.js', {
         userId: credentials.email,
         password: credentials.password,
         role: credentials.role || 'volunteer'
@@ -298,7 +298,7 @@ class ApiService {
 
   async register(data: RegisterData): Promise<ApiResponse<{ volunteer: Volunteer; token: string }>> {
     try {
-      const response: AxiosResponse<any> = await this.api.post('/auth/simple-register.js', {
+      const response: AxiosResponse<any> = await this.api.post('/auth/mongodb-register.js', {
         userId: data.email,
         password: data.password,
         role: data.role || 'volunteer'
@@ -388,7 +388,7 @@ class ApiService {
 
   // Event Management
   async getEvents(page: number = 1, limit: number = 10): Promise<ApiResponse<{ events: Event[]; total: number; page: number; totalPages: number }>> {
-    const response: AxiosResponse<any> = await this.api.get(`/events/simple.js?page=${page}&limit=${limit}`);
+    const response: AxiosResponse<any> = await this.api.get(`/events/mongodb.js?page=${page}&limit=${limit}`);
     const data = response.data;
     if (Array.isArray(data)) {
       return { success: true, data: { events: data, total: data.length, page: 1, totalPages: 1 } };
