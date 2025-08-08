@@ -2,12 +2,9 @@
   "buildCommand": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
   "outputDirectory": "client/dist",
   "functions": {
-    "server/server.js": {
+    "api/server.js": {
       "memory": 1024,
       "maxDuration": 10
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/server/server.js" }
-  ]
+  }
 }
