@@ -1,3 +1,5 @@
+// DEPRECATED: This serverless auth function is superseded by Express /api/auth/login.
+// Retained only because deletion failed in current workspace session.
 const UserCredentials = require('../../server/models/UserCredentials');
 const UserProfile = require('../../server/models/UserProfile');
 const jwt = require('jsonwebtoken');
@@ -32,6 +34,9 @@ const generateToken = (id) => {
 };
 
 module.exports = async function handler(req, res) {
+  return res.status(410).json({ message: 'Deprecated auth endpoint. Use /api/auth/login' });
+  /* Original implementation retained below for reference (now dead code): */
+  // NOTE: code below will not execute due to early return.
   // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

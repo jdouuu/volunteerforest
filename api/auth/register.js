@@ -1,3 +1,4 @@
+// DEPRECATED: Use Express /api/auth/register instead of this serverless function.
 const UserCredentials = require('../../server/models/UserCredentials');
 const UserProfile = require('../../server/models/UserProfile');
 const jwt = require('jsonwebtoken');
@@ -32,6 +33,8 @@ const generateToken = (id) => {
 };
 
 module.exports = async function handler(req, res) {
+  return res.status(410).json({ message: 'Deprecated register endpoint. Use /api/auth/register' });
+  // Dead code below kept for reference.
   // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
