@@ -9,14 +9,16 @@ const userRoutes = require('./routes/userRoutes');
 const eventsV2Routes = require('./routes/eventsV2');
 const path = require('path'); // Import path module for serving static files
 
-dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file
+dotenv.config({ path: __dirname + '/.env' }); // Load environment variables from .env file (envs come from Vercel)
 
-try {
-  connectDB(); // Connect to MongoDB
-} catch (error) {
-  console.error("CRITICAL_ERROR: Failed to connect to MongoDB on startup.", error);
-  process.exit(1);
-}
+// Try to establish DB connection, but do not crash the server in serverless
+(async () => {
+  try {
+    await connectDB();
+  } catch (error) {
+    console.error("CRITICAL_ERROR: Failed to connect to MongoDB on startup.", error.message || error);
+  }
+})();
 
 const app = express();
 

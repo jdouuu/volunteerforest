@@ -5,9 +5,10 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
+  if (!process.env.JWT_SECRET) {
+    throw new Error('Server misconfiguration: JWT_SECRET missing');
+  }
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 const registerUser  = asyncHandler(async (req, res) => {

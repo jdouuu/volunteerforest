@@ -9,6 +9,9 @@ require('dotenv').config(); // Load environment variables
  */
 const connectDB = async () => {
   try {
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is not configured');
+    }
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
@@ -33,8 +36,9 @@ const connectDB = async () => {
       console.warn('Index migration/backfill skipped or failed:', migrateErr.message);
     }
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1); // Exit process with failure
+    console.error(`MongoDB connection error: ${error.message}`);
+    // In serverless environments, do not exit the process; propagate error
+    throw error;
   }
 };
 
