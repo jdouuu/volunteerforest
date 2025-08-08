@@ -171,10 +171,12 @@ class ApiService {
     // Build base URL: always include '/api' prefix
     const viteEnv = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {};
     let origin = (viteEnv.VITE_API_URL || '').toString().replace(/\/$/, '');
-    // If set to localhost but deployed elsewhere, use relative API
+    // Prefer relative API in non-local environments regardless of VITE_API_URL
     try {
-      if (origin.includes('localhost') && typeof window !== 'undefined' && !window.location.host.includes('localhost')) {
-        origin = '';
+      if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        const isLocal = host === 'localhost' || host === '127.0.0.1';
+        if (!isLocal) origin = '';
       }
     } catch {}
     const baseURL = `${origin}/api`;
@@ -186,6 +188,8 @@ class ApiService {
       },
       timeout: 10000, // 10 second timeout
     });
+
+    try { console.log('API baseURL =>', baseURL); } catch {}
 
     // Add request interceptor to include auth token
     this.api.interceptors.request.use(
@@ -363,8 +367,14 @@ class ApiService {
 
   async verifyToken(): Promise<ApiResponse<{ user: Volunteer }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ user: Volunteer }>> = await this.api.get('/auth/me');
-      return response.data;
+      const response: AxiosResponse<any> = await this.api.get('/auth/me');
+      const data = response.data;
+      // Support both wrapped and raw user payloads
+      if (data && data.success && data.data) return data;
+      if (data && data._id && data.userId) {
+        return { success: true, data: { user: data } } as any;
+      }
+      return { success: false, data: { user: {} as any }, message: 'Invalid token response' };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Token verification failed');
     }
