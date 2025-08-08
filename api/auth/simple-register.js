@@ -1,24 +1,4 @@
-// Simple in-memory user store for demo (in production, use a database)
-let users = [
-  {
-    id: '1',
-    email: 'admin@volunteer.com',
-    password: 'admin123',
-    role: 'admin',
-    name: 'Admin User'
-  },
-  {
-    id: '2', 
-    email: 'volunteer@test.com',
-    password: 'test123',
-    role: 'volunteer',
-    name: 'Test Volunteer'
-  }
-];
-
-const generateSimpleToken = (id) => {
-  return `simple_token_${id}_${Date.now()}`;
-};
+const { findUser, addUser, generateSimpleToken } = require('./user-store');
 
 module.exports = async function handler(req, res) {
   // Handle CORS
@@ -45,22 +25,19 @@ module.exports = async function handler(req, res) {
 
     console.log('Simple register attempt:', { userId, role });
 
-    // Check if user already exists
-    const existingUser = users.find(u => u.email === userId && u.role === role);
+    // Check if user already exists using shared store
+    const existingUser = findUser(userId, role);
     if (existingUser) {
       return res.status(400).json({ message: 'User ID already registered for this role' });
     }
 
-    // Create new user
-    const newUser = {
-      id: String(users.length + 1),
+    // Create new user using shared store
+    const newUser = addUser({
       email: userId,
       password: password, // In production, hash this
       role: role,
       name: 'New User'
-    };
-
-    users.push(newUser);
+    });
 
     console.log('Simple registration successful for user:', userId);
 

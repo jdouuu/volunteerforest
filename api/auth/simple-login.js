@@ -1,25 +1,4 @@
-// Simple in-memory user store for demo (in production, use a database)
-const users = [
-  {
-    id: '1',
-    email: 'admin@volunteer.com',
-    password: 'admin123', // In production, this should be hashed
-    role: 'admin',
-    name: 'Admin User'
-  },
-  {
-    id: '2', 
-    email: 'volunteer@test.com',
-    password: 'test123', // In production, this should be hashed
-    role: 'volunteer',
-    name: 'Test Volunteer'
-  }
-];
-
-const generateSimpleToken = (id) => {
-  // Simple token without JWT for testing (in production, use proper JWT)
-  return `simple_token_${id}_${Date.now()}`;
-};
+const { findUser, generateSimpleToken } = require('./user-store');
 
 module.exports = async function handler(req, res) {
   // Handle CORS
@@ -46,8 +25,8 @@ module.exports = async function handler(req, res) {
 
     console.log('Simple login attempt:', { userId, role });
 
-    // Find user in simple store
-    const user = users.find(u => u.email === userId && u.role === role);
+    // Find user using shared store
+    const user = findUser(userId, role);
 
     if (!user) {
       console.log('User not found:', { userId, role });
